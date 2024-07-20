@@ -1,781 +1,116 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-<title>Deep dive - Anatomy of a PKCS#1 RSA private key | Learn part by part</title>
-<meta name="keywords" content="pkcs#1, openssl, rsa, privatekey, deepdive, pem, der">
-<meta name="description" content="Dissect and explore a PKCS#1 RSA private key in PEM format">
-<meta name="author" content="">
-<link rel="canonical" href="https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/">
-<meta name="google-site-verification" content="G-MF6MC03DXC">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.8834bbfc85f85dae1fabab19c063b95ea1edb56c60989b5fd879c5084b58f9f1.css" integrity="sha256-iDS7/IX4Xa4fq6sZwGO5XqHttWxgmJtf2HnFCEtY&#43;fE=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://partbypart.github.io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="https://partbypart.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://partbypart.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://partbypart.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://partbypart.github.io/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
-            }
-        }
-
-    </style>
-</noscript>
-  
-    
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-MF6MC03DXC"></script>
-      <script>
-        var doNotTrack = false;
-        if ( false ) {
-          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
-          var doNotTrack = (dnt == "1" || dnt == "yes");
-        }
-        if (!doNotTrack) {
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-MF6MC03DXC');
-        }
-      </script>
-    
-  
-
-<meta property="og:title" content="Deep dive - Anatomy of a PKCS#1 RSA private key" />
-<meta property="og:description" content="Dissect and explore a PKCS#1 RSA private key in PEM format" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/" />
-<meta property="og:image" content="https://partbypart.github.io/%3Cimage%20path/url%3E" /><meta property="article:section" content="posts" />
-
-<meta property="og:site_name" content="Part by Part" />
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://partbypart.github.io/%3Cimage%20path/url%3E" />
-<meta name="twitter:title" content="Deep dive - Anatomy of a PKCS#1 RSA private key"/>
-<meta name="twitter:description" content="Dissect and explore a PKCS#1 RSA private key in PEM format"/>
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://partbypart.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "Deep dive - Anatomy of a PKCS#1 RSA private key",
-      "item": "https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Deep dive - Anatomy of a PKCS#1 RSA private key",
-  "name": "Deep dive - Anatomy of a PKCS#1 RSA private key",
-  "description": "Dissect and explore a PKCS#1 RSA private key in PEM format",
-  "keywords": [
-    "pkcs#1", "openssl", "rsa", "privatekey", "deepdive", "pem", "der"
-  ],
-  "articleBody": "Prerequisites Linux/MacOS openssl command line tool (version 1.0.2 or higher) RSA key components 101 - ASN.1, DER, PEM, PKCS#1, PKCS#8 Quick bytes - Basics of Distinguished Encoding Rules Part 1 - ASN.1 syntax to store RSA private key in PKCS#1 format RSA Private key syntax RSAPrivateKey ::= SEQUENCE { version Version, modulus INTEGER, -- n publicExponent INTEGER, -- e privateExponent INTEGER, -- d prime1 INTEGER, -- p prime2 INTEGER, -- q exponent1 INTEGER, -- d mod (p-1) exponent2 INTEGER, -- d mod (q-1) coefficient INTEGER, -- (inverse of q) mod p otherPrimeInfos OtherPrimeInfos OPTIONAL } openssl genrsa command in OpenSSL 3 or higher generates private key in PKCS #8 PEM format by default. OpenSSL 3 -traditional switch can be used with openssl genrsa to generate private RSA key in traditional PKCS #1 format. openssl genrsa command in OpenSSL 1.0.2 generates private key in PKCS #1 PEM format by default. Verify PKCS #1 RSA private key syntax $ openssl version -v OpenSSL 1.0.2s 28 May 2019 # Create a sample 2048 bit RSA private key in PKCS#1 PEM format $ openssl genrsa -out /tmp/id_rsa_2048_pkcs1.pem 2048 2\u003e1 /dev/null $ grep \"BEGIN\\|END\" /tmp/id_rsa_2048_pkcs1.pem -----BEGIN RSA PRIVATE KEY----- -----END RSA PRIVATE KEY----- $ openssl asn1parse -in /tmp/id_rsa_2048_pkcs1.pem -i 0:d=0 hl=4 l=1189 cons: SEQUENCE 4:d=1 hl=2 l= 1 prim: INTEGER :00 7:d=1 hl=4 l= 257 prim: INTEGER :D0F0...5E15 268:d=1 hl=2 l= 3 prim: INTEGER :010001 273:d=1 hl=4 l= 257 prim: INTEGER :C873...0AE5 534:d=1 hl=3 l= 129 prim: INTEGER :F7A5...792F 666:d=1 hl=3 l= 129 prim: INTEGER :D7FC...03FB 798:d=1 hl=3 l= 128 prim: INTEGER :40FD...4973 929:d=1 hl=3 l= 129 prim: INTEGER :9378...133F 1061:d=1 hl=3 l= 129 prim: INTEGER :F2BB...2AC7 Part 2 - Commonly used tag values Tag (hex) Type 0x02 INTEGER 0x03 BIT STRING 0x04 OCTET STRING 0x05 NULL 0x06 OBJECT IDENTIFIER 0x0C UTF8String 0x10 (0x30*) SEQUENCE and SEQUENCE OF 0x11 (0x31*) SET and SET OF * The two tags marked with a * are always encoded as 0x30 or 0x31, because bit 6 is used to indicate whether a field is Constructed vs Primitive. These tags are always Constructed, so their encoding has bit 6 set to 1.\nHere is the complete list of Identifier octets for tags used in DER Part 3 - Steps to dissect a private key generated by openssl Lets use a sample 2048 bit PKCS #1 RSA private key as an example.\n$ cat /tmp/id_rsa_2048_pkcs1.pem -----BEGIN RSA PRIVATE KEY----- MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA ... A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc= -----END RSA PRIVATE KEY----- Remove the delimiters (encapsulation boundaries) used to demarcate the beginning and end of encoded data block in PEM format (applicable to both public and private keys) Delete the first and last line using sed tool $ sed '1d;$d' /tmp/id_rsa_2048_pkcs1.pem MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA ... A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc= Decode the base64 encoded text using base64 tool and save the output in a file (contents will be binary) $ sed '1d;$d' /tmp/id_rsa_2048_pkcs1.pem | base64 -d \u003e /tmp/id_rsa_2048_pkcs1.decoded $ file /tmp/id_rsa_2048_pkcs1.decoded /tmp/id_rsa_2048_pkcs1.decoded: DER Encoded Key Pair, 2048 bits Display the contents of file in hex using hexdump or xxd $ cat /tmp/id_rsa_2048_pkcs1.decoded | hexdump -e '24/1 \"%.2x \" \"\\n\"' 30 82 04 a5 02 01 00 02 82 01 01 00 d0 f0 00 8b a7 27 38 a4 07 ba 8f fe 85 6d 2b 07 3f df 7c 16 be 9d 08 e3 91 bf f7 1a 9b b5 30 e3 17 93 18 c0 ae 58 a6 a3 80 17 f7 e6 4d a1 11 d4 88 e0 22 8e 4e b6 cb 2c 8c e7 cb e9 ... 03 bc e7 da 20 ad fa 13 81 97 08 9b 82 5e a5 54 cd 3f 91 90 a0 6f 1a 16 60 8e d3 26 59 77 3e b8 3a 48 e6 04 20 6f 31 2a c7 The sequence of bytes in hex are now ready to be analyzed Part 4 - Examining a PKCS #1 RSA private key in PEM format Unwrap a PKCS #1 RSA private key to display the contents in hex $ grep \"BEGIN\\|END\" id_rsa_1024.pkcs1.pem -----BEGIN RSA PRIVATE KEY----- -----END RSA PRIVATE KEY----- $ sed '1d;$d' id_rsa_1024.pkcs1.pem | base64 -d | hexdump -ve '24/1 \"%.2x \" \"\\n\"' 30 82 02 5e 02 01 00 02 81 81 00 b4 11 9a 1f b6 22 55 e4 2c 24 6b 4f f4 26 9a 93 6e 2d 12 84 1b e0 e1 44 8e e1 98 20 7a 84 53 c5 12 c1 b0 09 ba 77 62 f6 b7 5d 46 81 7e 7d 8c fa 91 04 8a 49 0f 29 1a 4d ac cb cb e8 4c 55 3f 05 95 cf a6 24 ee 34 cd 68 9a 76 62 38 44 a4 48 2f 09 ca 84 8f ff fe 6b 11 e2 97 8f 7a 74 a4 b7 86 4a 7e d2 6d 68 14 4c c3 72 50 94 fd 9b c2 b1 dc 04 71 aa 95 b4 93 aa d8 99 c5 10 2f 61 1c 4c d3 02 03 01 00 01 02 81 81 00 a8 96 de 55 18 62 77 46 44 e9 e8 2b 18 6c d8 46 76 5d ee bb 0f 9a f1 6e 0d d4 3b 69 15 2c 35 7e 0a bc 9b 03 d0 b8 1c 48 df 8e 8e 07 89 95 24 dc 27 d0 37 64 85 b4 36 f3 48 78 1a 36 28 d9 9b 41 1d b3 7e 09 a0 a3 ff ce 0d 9d bb 48 50 47 6a e2 00 ae d3 97 2e d9 b1 3d 7d 02 77 ce 5a 10 e1 b8 f0 ca ee d4 ff 76 43 02 d5 1a 5d 13 98 50 58 d9 6d 31 19 00 11 5d 6a 46 f5 bb ed 85 01 44 5f a1 02 41 00 e3 a0 46 dc 04 89 34 d9 8c a8 f8 1f 66 5c 8b 16 65 47 9e 20 44 6b 7d 66 98 f4 e7 0b d7 97 df 8a 41 d9 1a 3e 28 16 3b d9 35 f6 b1 bc 30 2d f3 e5 0d c0 e0 57 2e 38 7e 55 88 2d 46 da 98 4f 63 31 02 41 00 ca 83 bc 09 27 b1 fe 82 79 1b 75 9c b4 d7 e8 3f 4a 8d 41 1b 1f 9d 5b c2 62 3b 01 61 17 8e 79 4b 32 d0 e2 e3 11 b3 7f c7 04 9c 33 0b 53 93 1a 09 7a c3 34 85 6a b1 52 80 8e 99 90 0f 64 cf 07 43 02 41 00 d8 52 fa e4 9f de f1 7e 0a c2 8e 43 f1 18 e4 0a 1d a8 89 6b 6a fa a8 8b 77 b3 cf 5c 1e c1 33 ed 86 14 d8 6e d7 d4 01 7e b5 5d 44 9e 6f 3f 4c b9 93 6f 89 04 f1 65 39 12 fa 3e e5 46 5b 57 9f 11 02 40 49 ae d6 aa aa 13 bc 1b 72 bf 07 f2 e5 65 ad 2d e2 0d 35 04 0e 63 ad b0 33 17 6e f0 09 a7 20 00 b9 53 81 49 c6 f5 fd 66 c7 09 a2 14 db ea a8 cd 8c 2a 1c 20 f2 e9 e3 af bc b2 a8 d4 c1 04 06 8b 02 41 00 ad c7 07 f6 86 26 fe 8c 1b 2a eb 50 b8 91 69 ac b7 33 28 a9 24 b2 cf a7 be 98 b4 b3 aa 1b 85 d6 4d 80 a0 09 d2 d7 6f 54 fb a2 a3 52 9e 68 f9 51 f2 13 f2 5e c3 71 79 d7 fc e3 df f8 89 93 dd 00 Dissection of PKCS#1 Private key DER encoding 30 82 02 5e 0x30 is the tag value for a SEQUENCE 0x82 is the length. However, since the high bit (bit 7) is set (0x1000 0010), it indicates that the length can be found in the next 7 bits (2). Next 2 bytes 0x025e (606 bytes) indicate the length of SEQUENCE The bytes following 0x025e are the contents of SEQUENCE 02 01 00 0x02 is the tag value of an INTEGER 0x01 (1 byte) is the length of this integer 1 byte following 0x01 is 0x00 and that’s the version (0) 02 81 81 0x02 is the tag value of an INTEGER 0x81 is the length. However, since the high bit (bit 7) is set (0x1000 0001), it indicates that the length can be found in the next 7 bits (next 1 byte). So, 0x81 (129 bytes) is the length of INTEGER 129 bytes following 0x81 represent the public modulus 00 b4 11 9a 1f b6 22 55 e4 2c 24 6b 4f f4 26 9a 93 6e 2d 12 84 1b e0 e1 44 8e e1 98 20 7a 84 53 c5 12 c1 b0 09 ba 77 62 f6 b7 5d 46 81 7e 7d 8c fa 91 04 8a 49 0f 29 1a 4d ac cb cb e8 4c 55 3f 05 95 cf a6 24 ee 34 cd 68 9a 76 62 38 44 a4 48 2f 09 ca 84 8f ff fe 6b 11 e2 97 8f 7a 74 a4 b7 86 4a 7e d2 6d 68 14 4c c3 72 50 94 fd 9b c2 b1 dc 04 71 aa 95 b4 93 aa d8 99 c5 10 2f 61 1c 4c d3 Value of public modulus represented in 129 bytes 02 03 0x02 is the tag value of an INTEGER 0x03 (3 bytes) is the length of this integer 3 bytes following 0x03 represent the public exponent 01 00 01 Value of public exponent (65537) 02 81 81 0x02 is the tag value of an INTEGER 0x81 is the length. However, since the high bit (bit 7) is set (0x1000 0001), it indicates that the length can be found in the next 7 bits (next 1 byte). So, 0x81 (129 bytes) is the length of INTEGER 129 bytes following 0x81 represent the private exponent 00 a8 96 de 55 18 62 77 46 44 e9 e8 2b 18 6c d8 46 76 5d ee bb 0f 9a f1 6e 0d d4 3b 69 15 2c 35 7e 0a bc 9b 03 d0 b8 1c 48 df 8e 8e 07 89 95 24 dc 27 d0 37 64 85 b4 36 f3 48 78 1a 36 28 d9 9b 41 1d b3 7e 09 a0 a3 ff ce 0d 9d bb 48 50 47 6a e2 00 ae d3 97 2e d9 b1 3d 7d 02 77 ce 5a 10 e1 b8 f0 ca ee d4 ff 76 43 02 d5 1a 5d 13 98 50 58 d9 6d 31 19 00 11 5d 6a 46 f5 bb ed 85 01 44 5f a1 Value of private exponent represented in 129 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent prime1 00 e3 a0 46 dc 04 89 34 d9 8c a8 f8 1f 66 5c 8b 16 65 47 9e 20 44 6b 7d 66 98 f4 e7 0b d7 97 df 8a 41 d9 1a 3e 28 16 3b d9 35 f6 b1 bc 30 2d f3 e5 0d c0 e0 57 2e 38 7e 55 88 2d 46 da 98 4f 63 31 Value of prime1 represented in 65 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent prime2 00 ca 83 bc 09 27 b1 fe 82 79 1b 75 9c b4 d7 e8 3f 4a 8d 41 1b 1f 9d 5b c2 62 3b 01 61 17 8e 79 4b 32 d0 e2 e3 11 b3 7f c7 04 9c 33 0b 53 93 1a 09 7a c3 34 85 6a b1 52 80 8e 99 90 0f 64 cf 07 43 Value of prime2 represented in 65 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent exponent1 00 d8 52 fa e4 9f de f1 7e 0a c2 8e 43 f1 18 e4 0a 1d a8 89 6b 6a fa a8 8b 77 b3 cf 5c 1e c1 33 ed 86 14 d8 6e d7 d4 01 7e b5 5d 44 9e 6f 3f 4c b9 93 6f 89 04 f1 65 39 12 fa 3e e5 46 5b 57 9f 11 Value of exponent1 represented in 65 bytes 02 40 0x02 is the tag value of an INTEGER 0x40 (64 bytes) is the length of this integer 64 bytes following 0x41 represent exponent2 49 ae d6 aa aa 13 bc 1b 72 bf 07 f2 e5 65 ad 2d e2 0d 35 04 0e 63 ad b0 33 17 6e f0 09 a7 20 00 b9 53 81 49 c6 f5 fd 66 c7 09 a2 14 db ea a8 cd 8c 2a 1c 20 f2 e9 e3 af bc b2 a8 d4 c1 04 06 8b Value of exponent2 represented in 64 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent coefficient 00 ad c7 07 f6 86 26 fe 8c 1b 2a eb 50 b8 91 69 ac b7 33 28 a9 24 b2 cf a7 be 98 b4 b3 aa 1b 85 d6 4d 80 a0 09 d2 d7 6f 54 fb a2 a3 52 9e 68 f9 51 f2 13 f2 5e c3 71 79 d7 fc e3 df f8 89 93 dd 00 Value of coefficient represented in 65 bytes References RFC 8017 - RSA Private Key Syntax OpenSSL 1.0.2 - openssl-genrsa OpenSSL 1.0.2 - openssl-asn1parse Wiki: PKCS #1 Wiki: ASN.1 Wiki: Length octets encoding forms Wiki: Identifier octets ASN.1 Javascript decoder tool ",
-  "wordCount" : "2337",
-  "inLanguage": "en",
-  "image":"https://partbypart.github.io/%3Cimage%20path/url%3E","datePublished": "0001-01-01T00:00:00Z",
-  "dateModified": "0001-01-01T00:00:00Z",
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Learn part by part",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://partbypart.github.io/favicon.ico"
-    }
-  }
-}
-</script>
-</head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
-    <nav class="nav">
-        <div class="logo">
-            <a href="https://partbypart.github.io/" accesskey="h" title="PartByPart (Alt + H)">
-                <img src="https://partbypart.github.io/apple-touch-icon.png" alt="" aria-label="logo"
-                    height="35">PartByPart</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="https://partbypart.github.io/categories/" title="CATEGORIES">
-                    <span>CATEGORIES</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://partbypart.github.io/tags/" title="TAGS">
-                    <span>TAGS</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://partbypart.github.io/archives/" title="ARCHIVES">
-                    <span>ARCHIVES</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://partbypart.github.io/search/" title="SEARCH (Alt &#43; /)" accesskey=/>
-                    <span>SEARCH</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <div class="breadcrumbs"><a href="https://partbypart.github.io/">Home</a>&nbsp;»&nbsp;<a href="https://partbypart.github.io/posts/">Posts</a></div>
-    <h1 class="post-title entry-hint-parent">
-      Deep dive - Anatomy of a PKCS#1 RSA private key
-    </h1>
-    <div class="post-description">
-      Dissect and explore a PKCS#1 RSA private key in PEM format
-    </div>
-    <div class="post-meta">11 min&nbsp;·&nbsp;2337 words
-
-</div>
-  </header> <div class="toc">
-    <details >
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
-
-        <div class="inner"><nav id="TableOfContents">
-  <ul>
-    <li>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#part-1---asn1-syntax-to-store-rsa-private-key-in-pkcs1-format">Part 1 - ASN.1 syntax to store RSA private key in PKCS#1 format</a></li>
-        <li><a href="#part-2---commonly-used-tag-values">Part 2 - Commonly used tag values</a></li>
-        <li><a href="#dissect-a-key">Part 3 - Steps to dissect a private key generated by openssl</a></li>
-        <li><a href="#part-4---examining-a-pkcs-1-rsa-private-key-in-pem-format">Part 4 - Examining a PKCS #1 RSA private key in PEM format</a></li>
-        <li><a href="#references">References</a></li>
-      </ul>
-    </li>
-  </ul>
-</nav>
-        </div>
-    </details>
-</div>
-
-  <div class="post-content"><h3 id="prerequisites">Prerequisites<a hidden class="anchor" aria-hidden="true" href="#prerequisites">#</a></h3>
-<ul>
-<li>Linux/MacOS</li>
-<li><code>openssl</code> command line tool (version 1.0.2 or higher)</li>
-<li><a href="https://partbypart.github.io/posts/rsa-key-components/">RSA key components</a></li>
-<li><a href="https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/">101 - ASN.1, DER, PEM, PKCS#1, PKCS#8</a></li>
-<li><a href="https://partbypart.github.io/posts/quick-bytes-der-basics/">Quick bytes - Basics of Distinguished Encoding Rules</a></li>
-</ul>
-<h3 id="part-1---asn1-syntax-to-store-rsa-private-key-in-pkcs1-format">Part 1 - ASN.1 syntax to store RSA private key in PKCS#1 format<a hidden class="anchor" aria-hidden="true" href="#part-1---asn1-syntax-to-store-rsa-private-key-in-pkcs1-format">#</a></h3>
-<ul>
-<li>RSA Private key <a href="https://datatracker.ietf.org/doc/html/rfc8017#appendix-A.1.2">syntax</a>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">RSAPrivateKey ::<span class="o">=</span> SEQUENCE <span class="o">{</span>
-</span></span><span class="line"><span class="cl">    version           Version,
-</span></span><span class="line"><span class="cl">    modulus           INTEGER,  -- n
-</span></span><span class="line"><span class="cl">    publicExponent    INTEGER,  -- e
-</span></span><span class="line"><span class="cl">    privateExponent   INTEGER,  -- d
-</span></span><span class="line"><span class="cl">    prime1            INTEGER,  -- p
-</span></span><span class="line"><span class="cl">    prime2            INTEGER,  -- q
-</span></span><span class="line"><span class="cl">    exponent1         INTEGER,  -- d mod <span class="o">(</span>p-1<span class="o">)</span>
-</span></span><span class="line"><span class="cl">    exponent2         INTEGER,  -- d mod <span class="o">(</span>q-1<span class="o">)</span>
-</span></span><span class="line"><span class="cl">    coefficient       INTEGER,  -- <span class="o">(</span>inverse of q<span class="o">)</span> mod p
-</span></span><span class="line"><span class="cl">    otherPrimeInfos   OtherPrimeInfos OPTIONAL
-</span></span><span class="line"><span class="cl"><span class="o">}</span>
-</span></span></code></pre></div></li>
-<li><code>openssl genrsa</code> command in <a href="https://www.openssl.org/docs/man3.0/man1/openssl-genrsa.html">OpenSSL 3 or higher</a> generates private key in <em>PKCS #8</em> PEM format by default.</li>
-<li>OpenSSL 3 <code>-traditional</code> switch can be used with <code>openssl genrsa</code>  to generate private RSA key in traditional PKCS #1 format.</li>
-<li><code>openssl genrsa</code> command in OpenSSL 1.0.2 generates private key in <em>PKCS #1</em> PEM format by default.</li>
-<li>Verify PKCS #1 RSA private key syntax
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl version -v
-</span></span><span class="line"><span class="cl">OpenSSL 1.0.2s  <span class="m">28</span> May <span class="m">2019</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Create a sample 2048 bit RSA private key in PKCS#1 PEM format</span>
-</span></span><span class="line"><span class="cl">$ openssl genrsa -out /tmp/id_rsa_2048_pkcs1.pem <span class="m">2048</span> 2&gt;1 /dev/null
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ grep <span class="s2">&#34;BEGIN\|END&#34;</span> /tmp/id_rsa_2048_pkcs1.pem
-</span></span><span class="line"><span class="cl">-----BEGIN RSA PRIVATE KEY-----
-</span></span><span class="line"><span class="cl">-----END RSA PRIVATE KEY-----
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ openssl asn1parse -in /tmp/id_rsa_2048_pkcs1.pem -i
-</span></span><span class="line"><span class="cl">    0:d<span class="o">=</span><span class="m">0</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">4</span> <span class="nv">l</span><span class="o">=</span><span class="m">1189</span> cons: SEQUENCE
-</span></span><span class="line"><span class="cl">    4:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">2</span> <span class="nv">l</span><span class="o">=</span>   <span class="m">1</span> prim:  INTEGER           :00
-</span></span><span class="line"><span class="cl">    7:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">4</span> <span class="nv">l</span><span class="o">=</span> <span class="m">257</span> prim:  INTEGER           :D0F0...5E15
-</span></span><span class="line"><span class="cl">  268:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">2</span> <span class="nv">l</span><span class="o">=</span>   <span class="m">3</span> prim:  INTEGER           :010001
-</span></span><span class="line"><span class="cl">  273:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">4</span> <span class="nv">l</span><span class="o">=</span> <span class="m">257</span> prim:  INTEGER           :C873...0AE5
-</span></span><span class="line"><span class="cl">  534:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">3</span> <span class="nv">l</span><span class="o">=</span> <span class="m">129</span> prim:  INTEGER           :F7A5...792F
-</span></span><span class="line"><span class="cl">  666:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">3</span> <span class="nv">l</span><span class="o">=</span> <span class="m">129</span> prim:  INTEGER           :D7FC...03FB
-</span></span><span class="line"><span class="cl">  798:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">3</span> <span class="nv">l</span><span class="o">=</span> <span class="m">128</span> prim:  INTEGER           :40FD...4973
-</span></span><span class="line"><span class="cl">  929:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">3</span> <span class="nv">l</span><span class="o">=</span> <span class="m">129</span> prim:  INTEGER           :9378...133F
-</span></span><span class="line"><span class="cl"> 1061:d<span class="o">=</span><span class="m">1</span>  <span class="nv">hl</span><span class="o">=</span><span class="m">3</span> <span class="nv">l</span><span class="o">=</span> <span class="m">129</span> prim:  INTEGER           :F2BB...2AC7
-</span></span></code></pre></div></li>
-</ul>
-<h3 id="part-2---commonly-used-tag-values">Part 2 - Commonly used tag values<a hidden class="anchor" aria-hidden="true" href="#part-2---commonly-used-tag-values">#</a></h3>
-<table>
-<thead>
-<tr>
-<th>Tag (hex)</th>
-<th>Type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>0x02</code></td>
-<td><code>INTEGER</code></td>
-</tr>
-<tr>
-<td><code>0x03</code></td>
-<td><code>BIT STRING</code></td>
-</tr>
-<tr>
-<td><code>0x04</code></td>
-<td><code>OCTET STRING</code></td>
-</tr>
-<tr>
-<td><code>0x05</code></td>
-<td><code>NULL</code></td>
-</tr>
-<tr>
-<td><code>0x06</code></td>
-<td><code>OBJECT IDENTIFIER</code></td>
-</tr>
-<tr>
-<td><code>0x0C</code></td>
-<td><code>UTF8String</code></td>
-</tr>
-<tr>
-<td><code>0x10</code> (<code>0x30</code>*)</td>
-<td><code>SEQUENCE</code> and <code>SEQUENCE OF</code></td>
-</tr>
-<tr>
-<td><code>0x11</code> (<code>0x31</code>*)</td>
-<td><code>SET</code> and <code>SET OF</code></td>
-</tr>
-</tbody>
-</table>
-<p>* The two tags marked with a <code>*</code> are always encoded as 0x30 or 0x31, because bit 6 is used to indicate whether a field is Constructed vs Primitive. These tags are always Constructed, so their encoding has bit 6 set to 1.</p>
-<ul>
-<li><a href="https://en.wikipedia.org/wiki/X.690#Identifier_octets">Here is the complete list of Identifier octets</a> for tags used in DER</li>
-</ul>
-<h3 id="dissect-a-key">Part 3 - Steps to dissect a private key generated by openssl<a hidden class="anchor" aria-hidden="true" href="#dissect-a-key">#</a></h3>
-<p>Lets use a sample 2048 bit PKCS #1 RSA private key as an example.</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ cat /tmp/id_rsa_2048_pkcs1.pem
-</span></span><span class="line"><span class="cl">-----BEGIN RSA PRIVATE KEY-----
-</span></span><span class="line"><span class="cl">MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA
-</span></span><span class="line"><span class="cl">...
-</span></span><span class="line"><span class="cl">A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc<span class="o">=</span>
-</span></span><span class="line"><span class="cl">-----END RSA PRIVATE KEY-----
-</span></span></code></pre></div><ol>
-<li>Remove the delimiters (encapsulation boundaries) used to demarcate the beginning and end of encoded data block in PEM format (applicable to both public and private keys)
-<ul>
-<li>Delete the first and last line using <code>sed</code> tool</li>
-</ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ sed <span class="s1">&#39;1d;$d&#39;</span> /tmp/id_rsa_2048_pkcs1.pem
-</span></span><span class="line"><span class="cl">MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA
-</span></span><span class="line"><span class="cl">...
-</span></span><span class="line"><span class="cl">A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc<span class="o">=</span>
-</span></span></code></pre></div></li>
-<li>Decode the base64 encoded text using <code>base64</code> tool and save the output in a file (contents will be binary)
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ sed <span class="s1">&#39;1d;$d&#39;</span> /tmp/id_rsa_2048_pkcs1.pem <span class="p">|</span> base64 -d &gt; /tmp/id_rsa_2048_pkcs1.decoded
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ file /tmp/id_rsa_2048_pkcs1.decoded
-</span></span><span class="line"><span class="cl">/tmp/id_rsa_2048_pkcs1.decoded: DER Encoded Key Pair, <span class="m">2048</span> bits
-</span></span></code></pre></div></li>
-<li>Display the contents of file in hex using <code>hexdump</code> or <code>xxd</code>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ cat /tmp/id_rsa_2048_pkcs1.decoded <span class="p">|</span> hexdump -e <span class="s1">&#39;24/1 &#34;%.2x &#34; &#34;\n&#34;&#39;</span>
-</span></span><span class="line"><span class="cl"><span class="m">30</span> <span class="m">82</span> <span class="m">04</span> a5 <span class="m">02</span> <span class="m">01</span> <span class="m">00</span> <span class="m">02</span> <span class="m">82</span> <span class="m">01</span> <span class="m">01</span> <span class="m">00</span> d0 f0 <span class="m">00</span> 8b a7 <span class="m">27</span> <span class="m">38</span> a4 <span class="m">07</span> ba 8f fe
-</span></span><span class="line"><span class="cl"><span class="m">85</span> 6d 2b <span class="m">07</span> 3f df 7c <span class="m">16</span> be 9d <span class="m">08</span> e3 <span class="m">91</span> bf f7 1a 9b b5 <span class="m">30</span> e3 <span class="m">17</span> <span class="m">93</span> <span class="m">18</span> c0
-</span></span><span class="line"><span class="cl">ae <span class="m">58</span> a6 a3 <span class="m">80</span> <span class="m">17</span> f7 e6 4d a1 <span class="m">11</span> d4 <span class="m">88</span> e0 <span class="m">22</span> 8e 4e b6 cb 2c 8c e7 cb e9
-</span></span><span class="line"><span class="cl">...
-</span></span><span class="line"><span class="cl"><span class="m">03</span> bc e7 da <span class="m">20</span> ad fa <span class="m">13</span> <span class="m">81</span> <span class="m">97</span> <span class="m">08</span> 9b <span class="m">82</span> 5e a5 <span class="m">54</span> <span class="nb">cd</span> 3f <span class="m">91</span> <span class="m">90</span> a0 6f 1a <span class="m">16</span>
-</span></span><span class="line"><span class="cl"><span class="m">60</span> 8e d3 <span class="m">26</span> <span class="m">59</span> <span class="m">77</span> 3e b8 3a <span class="m">48</span> e6 <span class="m">04</span> <span class="m">20</span> 6f <span class="m">31</span> 2a c7
-</span></span></code></pre></div></li>
-<li>The sequence of bytes in hex are now ready to be analyzed</li>
-</ol>
-<h3 id="part-4---examining-a-pkcs-1-rsa-private-key-in-pem-format">Part 4 - Examining a PKCS #1 RSA private key in PEM format<a hidden class="anchor" aria-hidden="true" href="#part-4---examining-a-pkcs-1-rsa-private-key-in-pem-format">#</a></h3>
-<ul>
-<li><a href="#dissect-a-key">Unwrap a PKCS #1 RSA private key to display the contents in hex</a>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ grep <span class="s2">&#34;BEGIN\|END&#34;</span> id_rsa_1024.pkcs1.pem
-</span></span><span class="line"><span class="cl">-----BEGIN RSA PRIVATE KEY-----
-</span></span><span class="line"><span class="cl">-----END RSA PRIVATE KEY-----
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ sed <span class="s1">&#39;1d;$d&#39;</span> id_rsa_1024.pkcs1.pem <span class="p">|</span> base64 -d <span class="p">|</span> hexdump -ve <span class="s1">&#39;24/1 &#34;%.2x &#34; &#34;\n&#34;&#39;</span>
-</span></span><span class="line"><span class="cl"><span class="m">30</span> <span class="m">82</span> <span class="m">02</span> 5e <span class="m">02</span> <span class="m">01</span> <span class="m">00</span> <span class="m">02</span> <span class="m">81</span> <span class="m">81</span> <span class="m">00</span> b4 <span class="m">11</span> 9a 1f b6 <span class="m">22</span> <span class="m">55</span> e4 2c <span class="m">24</span> 6b 4f f4
-</span></span><span class="line"><span class="cl"><span class="m">26</span> 9a <span class="m">93</span> 6e 2d <span class="m">12</span> <span class="m">84</span> 1b e0 e1 <span class="m">44</span> 8e e1 <span class="m">98</span> <span class="m">20</span> 7a <span class="m">84</span> <span class="m">53</span> c5 <span class="m">12</span> c1 b0 <span class="m">09</span> ba
-</span></span><span class="line"><span class="cl"><span class="m">77</span> <span class="m">62</span> f6 b7 5d <span class="m">46</span> <span class="m">81</span> 7e 7d 8c fa <span class="m">91</span> <span class="m">04</span> 8a <span class="m">49</span> 0f <span class="m">29</span> 1a 4d ac cb cb e8 4c
-</span></span><span class="line"><span class="cl"><span class="m">55</span> 3f <span class="m">05</span> <span class="m">95</span> cf a6 <span class="m">24</span> ee <span class="m">34</span> <span class="nb">cd</span> <span class="m">68</span> 9a <span class="m">76</span> <span class="m">62</span> <span class="m">38</span> <span class="m">44</span> a4 <span class="m">48</span> 2f <span class="m">09</span> ca <span class="m">84</span> 8f ff
-</span></span><span class="line"><span class="cl">fe 6b <span class="m">11</span> e2 <span class="m">97</span> 8f 7a <span class="m">74</span> a4 b7 <span class="m">86</span> 4a 7e d2 6d <span class="m">68</span> <span class="m">14</span> 4c c3 <span class="m">72</span> <span class="m">50</span> <span class="m">94</span> fd 9b
-</span></span><span class="line"><span class="cl">c2 b1 dc <span class="m">04</span> <span class="m">71</span> aa <span class="m">95</span> b4 <span class="m">93</span> aa d8 <span class="m">99</span> c5 <span class="m">10</span> 2f <span class="m">61</span> 1c 4c d3 <span class="m">02</span> <span class="m">03</span> <span class="m">01</span> <span class="m">00</span> <span class="m">01</span>
-</span></span><span class="line"><span class="cl"><span class="m">02</span> <span class="m">81</span> <span class="m">81</span> <span class="m">00</span> a8 <span class="m">96</span> de <span class="m">55</span> <span class="m">18</span> <span class="m">62</span> <span class="m">77</span> <span class="m">46</span> <span class="m">44</span> e9 e8 2b <span class="m">18</span> 6c d8 <span class="m">46</span> <span class="m">76</span> 5d ee bb
-</span></span><span class="line"><span class="cl">0f 9a f1 6e 0d d4 3b <span class="m">69</span> <span class="m">15</span> 2c <span class="m">35</span> 7e 0a bc 9b <span class="m">03</span> d0 b8 1c <span class="m">48</span> df 8e 8e <span class="m">07</span>
-</span></span><span class="line"><span class="cl"><span class="m">89</span> <span class="m">95</span> <span class="m">24</span> dc <span class="m">27</span> d0 <span class="m">37</span> <span class="m">64</span> <span class="m">85</span> b4 <span class="m">36</span> f3 <span class="m">48</span> <span class="m">78</span> 1a <span class="m">36</span> <span class="m">28</span> d9 9b <span class="m">41</span> 1d b3 7e <span class="m">09</span>
-</span></span><span class="line"><span class="cl">a0 a3 ff ce 0d 9d bb <span class="m">48</span> <span class="m">50</span> <span class="m">47</span> 6a e2 <span class="m">00</span> ae d3 <span class="m">97</span> 2e d9 b1 3d 7d <span class="m">02</span> <span class="m">77</span> ce
-</span></span><span class="line"><span class="cl">5a <span class="m">10</span> e1 b8 f0 ca ee d4 ff <span class="m">76</span> <span class="m">43</span> <span class="m">02</span> d5 1a 5d <span class="m">13</span> <span class="m">98</span> <span class="m">50</span> <span class="m">58</span> d9 6d <span class="m">31</span> <span class="m">19</span> <span class="m">00</span>
-</span></span><span class="line"><span class="cl"><span class="m">11</span> 5d 6a <span class="m">46</span> f5 bb ed <span class="m">85</span> <span class="m">01</span> <span class="m">44</span> 5f a1 <span class="m">02</span> <span class="m">41</span> <span class="m">00</span> e3 a0 <span class="m">46</span> dc <span class="m">04</span> <span class="m">89</span> <span class="m">34</span> d9 8c
-</span></span><span class="line"><span class="cl">a8 f8 1f <span class="m">66</span> 5c 8b <span class="m">16</span> <span class="m">65</span> <span class="m">47</span> 9e <span class="m">20</span> <span class="m">44</span> 6b 7d <span class="m">66</span> <span class="m">98</span> f4 e7 0b d7 <span class="m">97</span> df 8a <span class="m">41</span>
-</span></span><span class="line"><span class="cl">d9 1a 3e <span class="m">28</span> <span class="m">16</span> 3b d9 <span class="m">35</span> f6 b1 bc <span class="m">30</span> 2d f3 e5 0d c0 e0 <span class="m">57</span> 2e <span class="m">38</span> 7e <span class="m">55</span> <span class="m">88</span>
-</span></span><span class="line"><span class="cl">2d <span class="m">46</span> da <span class="m">98</span> 4f <span class="m">63</span> <span class="m">31</span> <span class="m">02</span> <span class="m">41</span> <span class="m">00</span> ca <span class="m">83</span> bc <span class="m">09</span> <span class="m">27</span> b1 fe <span class="m">82</span> <span class="m">79</span> 1b <span class="m">75</span> 9c b4 d7
-</span></span><span class="line"><span class="cl">e8 3f 4a 8d <span class="m">41</span> 1b 1f 9d 5b c2 <span class="m">62</span> 3b <span class="m">01</span> <span class="m">61</span> <span class="m">17</span> 8e <span class="m">79</span> 4b <span class="m">32</span> d0 e2 e3 <span class="m">11</span> b3
-</span></span><span class="line"><span class="cl">7f c7 <span class="m">04</span> 9c <span class="m">33</span> 0b <span class="m">53</span> <span class="m">93</span> 1a <span class="m">09</span> 7a c3 <span class="m">34</span> <span class="m">85</span> 6a b1 <span class="m">52</span> <span class="m">80</span> 8e <span class="m">99</span> <span class="m">90</span> 0f <span class="m">64</span> cf
-</span></span><span class="line"><span class="cl"><span class="m">07</span> <span class="m">43</span> <span class="m">02</span> <span class="m">41</span> <span class="m">00</span> d8 <span class="m">52</span> fa e4 9f de f1 7e 0a c2 8e <span class="m">43</span> f1 <span class="m">18</span> e4 0a 1d a8 <span class="m">89</span>
-</span></span><span class="line"><span class="cl">6b 6a fa a8 8b <span class="m">77</span> b3 cf 5c 1e c1 <span class="m">33</span> ed <span class="m">86</span> <span class="m">14</span> d8 6e d7 d4 <span class="m">01</span> 7e b5 5d <span class="m">44</span>
-</span></span><span class="line"><span class="cl">9e 6f 3f 4c b9 <span class="m">93</span> 6f <span class="m">89</span> <span class="m">04</span> f1 <span class="m">65</span> <span class="m">39</span> <span class="m">12</span> fa 3e e5 <span class="m">46</span> 5b <span class="m">57</span> 9f <span class="m">11</span> <span class="m">02</span> <span class="m">40</span> <span class="m">49</span>
-</span></span><span class="line"><span class="cl">ae d6 aa aa <span class="m">13</span> bc 1b <span class="m">72</span> bf <span class="m">07</span> f2 e5 <span class="m">65</span> ad 2d e2 0d <span class="m">35</span> <span class="m">04</span> 0e <span class="m">63</span> ad b0 <span class="m">33</span>
-</span></span><span class="line"><span class="cl"><span class="m">17</span> 6e f0 <span class="m">09</span> a7 <span class="m">20</span> <span class="m">00</span> b9 <span class="m">53</span> <span class="m">81</span> <span class="m">49</span> c6 f5 fd <span class="m">66</span> c7 <span class="m">09</span> a2 <span class="m">14</span> db ea a8 <span class="nb">cd</span> 8c
-</span></span><span class="line"><span class="cl">2a 1c <span class="m">20</span> f2 e9 e3 af bc b2 a8 d4 c1 <span class="m">04</span> <span class="m">06</span> 8b <span class="m">02</span> <span class="m">41</span> <span class="m">00</span> ad c7 <span class="m">07</span> f6 <span class="m">86</span> <span class="m">26</span>
-</span></span><span class="line"><span class="cl">fe 8c 1b 2a eb <span class="m">50</span> b8 <span class="m">91</span> <span class="m">69</span> ac b7 <span class="m">33</span> <span class="m">28</span> a9 <span class="m">24</span> b2 cf a7 be <span class="m">98</span> b4 b3 aa 1b
-</span></span><span class="line"><span class="cl"><span class="m">85</span> d6 4d <span class="m">80</span> a0 <span class="m">09</span> d2 d7 6f <span class="m">54</span> fb a2 a3 <span class="m">52</span> 9e <span class="m">68</span> f9 <span class="m">51</span> f2 <span class="m">13</span> f2 5e c3 <span class="m">71</span>
-</span></span><span class="line"><span class="cl"><span class="m">79</span> d7 <span class="nb">fc</span> e3 df f8 <span class="m">89</span> <span class="m">93</span> dd <span class="m">00</span>
-</span></span></code></pre></div></li>
-</ul>
-<h4 id="dissection-of-pkcs1-private-key-der-encoding">Dissection of PKCS#1 Private key DER encoding<a hidden class="anchor" aria-hidden="true" href="#dissection-of-pkcs1-private-key-der-encoding">#</a></h4>
-<ul>
-<li><span class="key-text highlight-sequence-type-length">30 82 02 5e</span>
-<ul>
-<li><code>0x30</code>  is the tag value for a <code>SEQUENCE</code></li>
-<li><code>0x82</code> is the length. However, since the high bit (bit 7) is set (<code>0x1000 0010</code>), it indicates that the length can be found in the next 7 bits (2). Next 2 bytes  <code>0x025e</code> (606 bytes) indicate the length of <code>SEQUENCE</code></li>
-<li>The bytes following <code>0x025e</code> are the contents of <code>SEQUENCE</code></li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 01 00</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x01</code> (1 byte) is the length of this integer</li>
-<li>1 byte following <code>0x01</code> is <code>0x00</code> and that&rsquo;s the version (<code>0</code>)</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 81 81</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x81</code> is the length. However, since the high bit (bit 7) is set (<code>0x1000 0001</code>), it indicates that the length can be found in the next 7 bits (next 1 byte). So, <code>0x81</code> (129 bytes) is the length of <code>INTEGER</code></li>
-<li>129 bytes following <code>0x81</code> represent the public modulus</li>
-</ul>
-</li>
-<li><span class="key-text highlight-modulus">00 b4 11 9a 1f b6 22 55 e4 2c 24 6b 4f f4
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Deep dive - Anatomy of a PKCS#1 RSA private key | Learn part by part</title>
+<meta name=keywords content="pkcs#1,openssl,rsa,privatekey,deepdive,pem,der"><meta name=description content="Dissect and explore a PKCS#1 RSA private key in PEM format"><meta name=author content><link rel=canonical href=https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/><meta name=google-site-verification content="G-MF6MC03DXC"><link crossorigin=anonymous href=/assets/css/stylesheet.8834bbfc85f85dae1fabab19c063b95ea1edb56c60989b5fd879c5084b58f9f1.css integrity="sha256-iDS7/IX4Xa4fq6sZwGO5XqHttWxgmJtf2HnFCEtY+fE=" rel="preload stylesheet" as=style><link rel=icon href=https://partbypart.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://partbypart.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://partbypart.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://partbypart.github.io/apple-touch-icon.png><link rel=mask-icon href=https://partbypart.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><script async src="https://www.googletagmanager.com/gtag/js?id=G-MF6MC03DXC"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-MF6MC03DXC")}</script><meta property="og:title" content="Deep dive - Anatomy of a PKCS#1 RSA private key"><meta property="og:description" content="Dissect and explore a PKCS#1 RSA private key in PEM format"><meta property="og:type" content="article"><meta property="og:url" content="https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/"><meta property="og:image" content="https://partbypart.github.io/%3Cimage%20path/url%3E"><meta property="article:section" content="posts"><meta property="og:site_name" content="Part by Part"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://partbypart.github.io/%3Cimage%20path/url%3E"><meta name=twitter:title content="Deep dive - Anatomy of a PKCS#1 RSA private key"><meta name=twitter:description content="Dissect and explore a PKCS#1 RSA private key in PEM format"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://partbypart.github.io/posts/"},{"@type":"ListItem","position":2,"name":"Deep dive - Anatomy of a PKCS#1 RSA private key","item":"https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Deep dive - Anatomy of a PKCS#1 RSA private key","name":"Deep dive - Anatomy of a PKCS#1 RSA private key","description":"Dissect and explore a PKCS#1 RSA private key in PEM format","keywords":["pkcs#1","openssl","rsa","privatekey","deepdive","pem","der"],"articleBody":"Prerequisites Linux/MacOS openssl command line tool (version 1.0.2 or higher) RSA key components 101 - ASN.1, DER, PEM, PKCS#1, PKCS#8 Quick bytes - Basics of Distinguished Encoding Rules Part 1 - ASN.1 syntax to store RSA private key in PKCS#1 format RSA Private key syntax RSAPrivateKey ::= SEQUENCE { version Version, modulus INTEGER, -- n publicExponent INTEGER, -- e privateExponent INTEGER, -- d prime1 INTEGER, -- p prime2 INTEGER, -- q exponent1 INTEGER, -- d mod (p-1) exponent2 INTEGER, -- d mod (q-1) coefficient INTEGER, -- (inverse of q) mod p otherPrimeInfos OtherPrimeInfos OPTIONAL } openssl genrsa command in OpenSSL 3 or higher generates private key in PKCS #8 PEM format by default. OpenSSL 3 -traditional switch can be used with openssl genrsa to generate private RSA key in traditional PKCS #1 format. openssl genrsa command in OpenSSL 1.0.2 generates private key in PKCS #1 PEM format by default. Verify PKCS #1 RSA private key syntax $ openssl version -v OpenSSL 1.0.2s 28 May 2019 # Create a sample 2048 bit RSA private key in PKCS#1 PEM format $ openssl genrsa -out /tmp/id_rsa_2048_pkcs1.pem 2048 2\u003e1 /dev/null $ grep \"BEGIN\\|END\" /tmp/id_rsa_2048_pkcs1.pem -----BEGIN RSA PRIVATE KEY----- -----END RSA PRIVATE KEY----- $ openssl asn1parse -in /tmp/id_rsa_2048_pkcs1.pem -i 0:d=0 hl=4 l=1189 cons: SEQUENCE 4:d=1 hl=2 l= 1 prim: INTEGER :00 7:d=1 hl=4 l= 257 prim: INTEGER :D0F0...5E15 268:d=1 hl=2 l= 3 prim: INTEGER :010001 273:d=1 hl=4 l= 257 prim: INTEGER :C873...0AE5 534:d=1 hl=3 l= 129 prim: INTEGER :F7A5...792F 666:d=1 hl=3 l= 129 prim: INTEGER :D7FC...03FB 798:d=1 hl=3 l= 128 prim: INTEGER :40FD...4973 929:d=1 hl=3 l= 129 prim: INTEGER :9378...133F 1061:d=1 hl=3 l= 129 prim: INTEGER :F2BB...2AC7 Part 2 - Commonly used tag values Tag (hex) Type 0x02 INTEGER 0x03 BIT STRING 0x04 OCTET STRING 0x05 NULL 0x06 OBJECT IDENTIFIER 0x0C UTF8String 0x10 (0x30*) SEQUENCE and SEQUENCE OF 0x11 (0x31*) SET and SET OF * The two tags marked with a * are always encoded as 0x30 or 0x31, because bit 6 is used to indicate whether a field is Constructed vs Primitive. These tags are always Constructed, so their encoding has bit 6 set to 1.\nHere is the complete list of Identifier octets for tags used in DER Part 3 - Steps to dissect a private key generated by openssl Lets use a sample 2048 bit PKCS #1 RSA private key as an example.\n$ cat /tmp/id_rsa_2048_pkcs1.pem -----BEGIN RSA PRIVATE KEY----- MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA ... A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc= -----END RSA PRIVATE KEY----- Remove the delimiters (encapsulation boundaries) used to demarcate the beginning and end of encoded data block in PEM format (applicable to both public and private keys) Delete the first and last line using sed tool $ sed '1d;$d' /tmp/id_rsa_2048_pkcs1.pem MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA ... A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc= Decode the base64 encoded text using base64 tool and save the output in a file (contents will be binary) $ sed '1d;$d' /tmp/id_rsa_2048_pkcs1.pem | base64 -d \u003e /tmp/id_rsa_2048_pkcs1.decoded $ file /tmp/id_rsa_2048_pkcs1.decoded /tmp/id_rsa_2048_pkcs1.decoded: DER Encoded Key Pair, 2048 bits Display the contents of file in hex using hexdump or xxd $ cat /tmp/id_rsa_2048_pkcs1.decoded | hexdump -e '24/1 \"%.2x \" \"\\n\"' 30 82 04 a5 02 01 00 02 82 01 01 00 d0 f0 00 8b a7 27 38 a4 07 ba 8f fe 85 6d 2b 07 3f df 7c 16 be 9d 08 e3 91 bf f7 1a 9b b5 30 e3 17 93 18 c0 ae 58 a6 a3 80 17 f7 e6 4d a1 11 d4 88 e0 22 8e 4e b6 cb 2c 8c e7 cb e9 ... 03 bc e7 da 20 ad fa 13 81 97 08 9b 82 5e a5 54 cd 3f 91 90 a0 6f 1a 16 60 8e d3 26 59 77 3e b8 3a 48 e6 04 20 6f 31 2a c7 The sequence of bytes in hex are now ready to be analyzed Part 4 - Examining a PKCS #1 RSA private key in PEM format Unwrap a PKCS #1 RSA private key to display the contents in hex $ grep \"BEGIN\\|END\" id_rsa_1024.pkcs1.pem -----BEGIN RSA PRIVATE KEY----- -----END RSA PRIVATE KEY----- $ sed '1d;$d' id_rsa_1024.pkcs1.pem | base64 -d | hexdump -ve '24/1 \"%.2x \" \"\\n\"' 30 82 02 5e 02 01 00 02 81 81 00 b4 11 9a 1f b6 22 55 e4 2c 24 6b 4f f4 26 9a 93 6e 2d 12 84 1b e0 e1 44 8e e1 98 20 7a 84 53 c5 12 c1 b0 09 ba 77 62 f6 b7 5d 46 81 7e 7d 8c fa 91 04 8a 49 0f 29 1a 4d ac cb cb e8 4c 55 3f 05 95 cf a6 24 ee 34 cd 68 9a 76 62 38 44 a4 48 2f 09 ca 84 8f ff fe 6b 11 e2 97 8f 7a 74 a4 b7 86 4a 7e d2 6d 68 14 4c c3 72 50 94 fd 9b c2 b1 dc 04 71 aa 95 b4 93 aa d8 99 c5 10 2f 61 1c 4c d3 02 03 01 00 01 02 81 81 00 a8 96 de 55 18 62 77 46 44 e9 e8 2b 18 6c d8 46 76 5d ee bb 0f 9a f1 6e 0d d4 3b 69 15 2c 35 7e 0a bc 9b 03 d0 b8 1c 48 df 8e 8e 07 89 95 24 dc 27 d0 37 64 85 b4 36 f3 48 78 1a 36 28 d9 9b 41 1d b3 7e 09 a0 a3 ff ce 0d 9d bb 48 50 47 6a e2 00 ae d3 97 2e d9 b1 3d 7d 02 77 ce 5a 10 e1 b8 f0 ca ee d4 ff 76 43 02 d5 1a 5d 13 98 50 58 d9 6d 31 19 00 11 5d 6a 46 f5 bb ed 85 01 44 5f a1 02 41 00 e3 a0 46 dc 04 89 34 d9 8c a8 f8 1f 66 5c 8b 16 65 47 9e 20 44 6b 7d 66 98 f4 e7 0b d7 97 df 8a 41 d9 1a 3e 28 16 3b d9 35 f6 b1 bc 30 2d f3 e5 0d c0 e0 57 2e 38 7e 55 88 2d 46 da 98 4f 63 31 02 41 00 ca 83 bc 09 27 b1 fe 82 79 1b 75 9c b4 d7 e8 3f 4a 8d 41 1b 1f 9d 5b c2 62 3b 01 61 17 8e 79 4b 32 d0 e2 e3 11 b3 7f c7 04 9c 33 0b 53 93 1a 09 7a c3 34 85 6a b1 52 80 8e 99 90 0f 64 cf 07 43 02 41 00 d8 52 fa e4 9f de f1 7e 0a c2 8e 43 f1 18 e4 0a 1d a8 89 6b 6a fa a8 8b 77 b3 cf 5c 1e c1 33 ed 86 14 d8 6e d7 d4 01 7e b5 5d 44 9e 6f 3f 4c b9 93 6f 89 04 f1 65 39 12 fa 3e e5 46 5b 57 9f 11 02 40 49 ae d6 aa aa 13 bc 1b 72 bf 07 f2 e5 65 ad 2d e2 0d 35 04 0e 63 ad b0 33 17 6e f0 09 a7 20 00 b9 53 81 49 c6 f5 fd 66 c7 09 a2 14 db ea a8 cd 8c 2a 1c 20 f2 e9 e3 af bc b2 a8 d4 c1 04 06 8b 02 41 00 ad c7 07 f6 86 26 fe 8c 1b 2a eb 50 b8 91 69 ac b7 33 28 a9 24 b2 cf a7 be 98 b4 b3 aa 1b 85 d6 4d 80 a0 09 d2 d7 6f 54 fb a2 a3 52 9e 68 f9 51 f2 13 f2 5e c3 71 79 d7 fc e3 df f8 89 93 dd 00 Dissection of PKCS#1 Private key DER encoding 30 82 02 5e 0x30 is the tag value for a SEQUENCE 0x82 is the length. However, since the high bit (bit 7) is set (0x1000 0010), it indicates that the length can be found in the next 7 bits (2). Next 2 bytes 0x025e (606 bytes) indicate the length of SEQUENCE The bytes following 0x025e are the contents of SEQUENCE 02 01 00 0x02 is the tag value of an INTEGER 0x01 (1 byte) is the length of this integer 1 byte following 0x01 is 0x00 and that’s the version (0) 02 81 81 0x02 is the tag value of an INTEGER 0x81 is the length. However, since the high bit (bit 7) is set (0x1000 0001), it indicates that the length can be found in the next 7 bits (next 1 byte). So, 0x81 (129 bytes) is the length of INTEGER 129 bytes following 0x81 represent the public modulus 00 b4 11 9a 1f b6 22 55 e4 2c 24 6b 4f f4 26 9a 93 6e 2d 12 84 1b e0 e1 44 8e e1 98 20 7a 84 53 c5 12 c1 b0 09 ba 77 62 f6 b7 5d 46 81 7e 7d 8c fa 91 04 8a 49 0f 29 1a 4d ac cb cb e8 4c 55 3f 05 95 cf a6 24 ee 34 cd 68 9a 76 62 38 44 a4 48 2f 09 ca 84 8f ff fe 6b 11 e2 97 8f 7a 74 a4 b7 86 4a 7e d2 6d 68 14 4c c3 72 50 94 fd 9b c2 b1 dc 04 71 aa 95 b4 93 aa d8 99 c5 10 2f 61 1c 4c d3 Value of public modulus represented in 129 bytes 02 03 0x02 is the tag value of an INTEGER 0x03 (3 bytes) is the length of this integer 3 bytes following 0x03 represent the public exponent 01 00 01 Value of public exponent (65537) 02 81 81 0x02 is the tag value of an INTEGER 0x81 is the length. However, since the high bit (bit 7) is set (0x1000 0001), it indicates that the length can be found in the next 7 bits (next 1 byte). So, 0x81 (129 bytes) is the length of INTEGER 129 bytes following 0x81 represent the private exponent 00 a8 96 de 55 18 62 77 46 44 e9 e8 2b 18 6c d8 46 76 5d ee bb 0f 9a f1 6e 0d d4 3b 69 15 2c 35 7e 0a bc 9b 03 d0 b8 1c 48 df 8e 8e 07 89 95 24 dc 27 d0 37 64 85 b4 36 f3 48 78 1a 36 28 d9 9b 41 1d b3 7e 09 a0 a3 ff ce 0d 9d bb 48 50 47 6a e2 00 ae d3 97 2e d9 b1 3d 7d 02 77 ce 5a 10 e1 b8 f0 ca ee d4 ff 76 43 02 d5 1a 5d 13 98 50 58 d9 6d 31 19 00 11 5d 6a 46 f5 bb ed 85 01 44 5f a1 Value of private exponent represented in 129 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent prime1 00 e3 a0 46 dc 04 89 34 d9 8c a8 f8 1f 66 5c 8b 16 65 47 9e 20 44 6b 7d 66 98 f4 e7 0b d7 97 df 8a 41 d9 1a 3e 28 16 3b d9 35 f6 b1 bc 30 2d f3 e5 0d c0 e0 57 2e 38 7e 55 88 2d 46 da 98 4f 63 31 Value of prime1 represented in 65 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent prime2 00 ca 83 bc 09 27 b1 fe 82 79 1b 75 9c b4 d7 e8 3f 4a 8d 41 1b 1f 9d 5b c2 62 3b 01 61 17 8e 79 4b 32 d0 e2 e3 11 b3 7f c7 04 9c 33 0b 53 93 1a 09 7a c3 34 85 6a b1 52 80 8e 99 90 0f 64 cf 07 43 Value of prime2 represented in 65 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent exponent1 00 d8 52 fa e4 9f de f1 7e 0a c2 8e 43 f1 18 e4 0a 1d a8 89 6b 6a fa a8 8b 77 b3 cf 5c 1e c1 33 ed 86 14 d8 6e d7 d4 01 7e b5 5d 44 9e 6f 3f 4c b9 93 6f 89 04 f1 65 39 12 fa 3e e5 46 5b 57 9f 11 Value of exponent1 represented in 65 bytes 02 40 0x02 is the tag value of an INTEGER 0x40 (64 bytes) is the length of this integer 64 bytes following 0x41 represent exponent2 49 ae d6 aa aa 13 bc 1b 72 bf 07 f2 e5 65 ad 2d e2 0d 35 04 0e 63 ad b0 33 17 6e f0 09 a7 20 00 b9 53 81 49 c6 f5 fd 66 c7 09 a2 14 db ea a8 cd 8c 2a 1c 20 f2 e9 e3 af bc b2 a8 d4 c1 04 06 8b Value of exponent2 represented in 64 bytes 02 41 0x02 is the tag value of an INTEGER 0x41 (65 bytes) is the length of this integer 65 bytes following 0x41 represent coefficient 00 ad c7 07 f6 86 26 fe 8c 1b 2a eb 50 b8 91 69 ac b7 33 28 a9 24 b2 cf a7 be 98 b4 b3 aa 1b 85 d6 4d 80 a0 09 d2 d7 6f 54 fb a2 a3 52 9e 68 f9 51 f2 13 f2 5e c3 71 79 d7 fc e3 df f8 89 93 dd 00 Value of coefficient represented in 65 bytes References RFC 8017 - RSA Private Key Syntax OpenSSL 1.0.2 - openssl-genrsa OpenSSL 1.0.2 - openssl-asn1parse Wiki: PKCS #1 Wiki: ASN.1 Wiki: Length octets encoding forms Wiki: Identifier octets ASN.1 Javascript decoder tool ","wordCount":"2337","inLanguage":"en","image":"https://partbypart.github.io/%3Cimage%20path/url%3E","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/"},"publisher":{"@type":"Organization","name":"Learn part by part","logo":{"@type":"ImageObject","url":"https://partbypart.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://partbypart.github.io/ accesskey=h title="PartByPart (Alt + H)"><img src=https://partbypart.github.io/apple-touch-icon.png alt aria-label=logo height=35>PartByPart</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://partbypart.github.io/categories/ title=CATEGORIES><span>CATEGORIES</span></a></li><li><a href=https://partbypart.github.io/tags/ title=TAGS><span>TAGS</span></a></li><li><a href=https://partbypart.github.io/archives/ title=ARCHIVES><span>ARCHIVES</span></a></li><li><a href=https://partbypart.github.io/search/ title="SEARCH (Alt + /)" accesskey=/><span>SEARCH</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=https://partbypart.github.io/>Home</a>&nbsp;»&nbsp;<a href=https://partbypart.github.io/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">Deep dive - Anatomy of a PKCS#1 RSA private key</h1><div class=post-description>Dissect and explore a PKCS#1 RSA private key in PEM format</div><div class=post-meta>11 min&nbsp;·&nbsp;2337 words</div></header><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><nav id=TableOfContents><ul><li><ul><li><a href=#prerequisites>Prerequisites</a></li><li><a href=#part-1---asn1-syntax-to-store-rsa-private-key-in-pkcs1-format>Part 1 - ASN.1 syntax to store RSA private key in PKCS#1 format</a></li><li><a href=#part-2---commonly-used-tag-values>Part 2 - Commonly used tag values</a></li><li><a href=#dissect-a-key>Part 3 - Steps to dissect a private key generated by openssl</a></li><li><a href=#part-4---examining-a-pkcs-1-rsa-private-key-in-pem-format>Part 4 - Examining a PKCS #1 RSA private key in PEM format</a></li><li><a href=#references>References</a></li></ul></li></ul></nav></div></details></div><div class=post-content><h3 id=prerequisites>Prerequisites<a hidden class=anchor aria-hidden=true href=#prerequisites>#</a></h3><ul><li>Linux/MacOS</li><li><code>openssl</code> command line tool (version 1.0.2 or higher)</li><li><a href=https://partbypart.github.io/posts/rsa-key-components/>RSA key components</a></li><li><a href=https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/>101 - ASN.1, DER, PEM, PKCS#1, PKCS#8</a></li><li><a href=https://partbypart.github.io/posts/quick-bytes-der-basics/>Quick bytes - Basics of Distinguished Encoding Rules</a></li></ul><h3 id=part-1---asn1-syntax-to-store-rsa-private-key-in-pkcs1-format>Part 1 - ASN.1 syntax to store RSA private key in PKCS#1 format<a hidden class=anchor aria-hidden=true href=#part-1---asn1-syntax-to-store-rsa-private-key-in-pkcs1-format>#</a></h3><ul><li>RSA Private key <a href=https://datatracker.ietf.org/doc/html/rfc8017#appendix-A.1.2>syntax</a><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>RSAPrivateKey ::<span class=o>=</span> SEQUENCE <span class=o>{</span>
+</span></span><span class=line><span class=cl>    version           Version,
+</span></span><span class=line><span class=cl>    modulus           INTEGER,  -- n
+</span></span><span class=line><span class=cl>    publicExponent    INTEGER,  -- e
+</span></span><span class=line><span class=cl>    privateExponent   INTEGER,  -- d
+</span></span><span class=line><span class=cl>    prime1            INTEGER,  -- p
+</span></span><span class=line><span class=cl>    prime2            INTEGER,  -- q
+</span></span><span class=line><span class=cl>    exponent1         INTEGER,  -- d mod <span class=o>(</span>p-1<span class=o>)</span>
+</span></span><span class=line><span class=cl>    exponent2         INTEGER,  -- d mod <span class=o>(</span>q-1<span class=o>)</span>
+</span></span><span class=line><span class=cl>    coefficient       INTEGER,  -- <span class=o>(</span>inverse of q<span class=o>)</span> mod p
+</span></span><span class=line><span class=cl>    otherPrimeInfos   OtherPrimeInfos OPTIONAL
+</span></span><span class=line><span class=cl><span class=o>}</span>
+</span></span></code></pre></div></li><li><code>openssl genrsa</code> command in <a href=https://www.openssl.org/docs/man3.0/man1/openssl-genrsa.html>OpenSSL 3 or higher</a> generates private key in <em>PKCS #8</em> PEM format by default.</li><li>OpenSSL 3 <code>-traditional</code> switch can be used with <code>openssl genrsa</code> to generate private RSA key in traditional PKCS #1 format.</li><li><code>openssl genrsa</code> command in OpenSSL 1.0.2 generates private key in <em>PKCS #1</em> PEM format by default.</li><li>Verify PKCS #1 RSA private key syntax<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ openssl version -v
+</span></span><span class=line><span class=cl>OpenSSL 1.0.2s  <span class=m>28</span> May <span class=m>2019</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Create a sample 2048 bit RSA private key in PKCS#1 PEM format</span>
+</span></span><span class=line><span class=cl>$ openssl genrsa -out /tmp/id_rsa_2048_pkcs1.pem <span class=m>2048</span> 2&gt;1 /dev/null
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ grep <span class=s2>&#34;BEGIN\|END&#34;</span> /tmp/id_rsa_2048_pkcs1.pem
+</span></span><span class=line><span class=cl>-----BEGIN RSA PRIVATE KEY-----
+</span></span><span class=line><span class=cl>-----END RSA PRIVATE KEY-----
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ openssl asn1parse -in /tmp/id_rsa_2048_pkcs1.pem -i
+</span></span><span class=line><span class=cl>    0:d<span class=o>=</span><span class=m>0</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>4</span> <span class=nv>l</span><span class=o>=</span><span class=m>1189</span> cons: SEQUENCE
+</span></span><span class=line><span class=cl>    4:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>2</span> <span class=nv>l</span><span class=o>=</span>   <span class=m>1</span> prim:  INTEGER           :00
+</span></span><span class=line><span class=cl>    7:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>4</span> <span class=nv>l</span><span class=o>=</span> <span class=m>257</span> prim:  INTEGER           :D0F0...5E15
+</span></span><span class=line><span class=cl>  268:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>2</span> <span class=nv>l</span><span class=o>=</span>   <span class=m>3</span> prim:  INTEGER           :010001
+</span></span><span class=line><span class=cl>  273:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>4</span> <span class=nv>l</span><span class=o>=</span> <span class=m>257</span> prim:  INTEGER           :C873...0AE5
+</span></span><span class=line><span class=cl>  534:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>3</span> <span class=nv>l</span><span class=o>=</span> <span class=m>129</span> prim:  INTEGER           :F7A5...792F
+</span></span><span class=line><span class=cl>  666:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>3</span> <span class=nv>l</span><span class=o>=</span> <span class=m>129</span> prim:  INTEGER           :D7FC...03FB
+</span></span><span class=line><span class=cl>  798:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>3</span> <span class=nv>l</span><span class=o>=</span> <span class=m>128</span> prim:  INTEGER           :40FD...4973
+</span></span><span class=line><span class=cl>  929:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>3</span> <span class=nv>l</span><span class=o>=</span> <span class=m>129</span> prim:  INTEGER           :9378...133F
+</span></span><span class=line><span class=cl> 1061:d<span class=o>=</span><span class=m>1</span>  <span class=nv>hl</span><span class=o>=</span><span class=m>3</span> <span class=nv>l</span><span class=o>=</span> <span class=m>129</span> prim:  INTEGER           :F2BB...2AC7
+</span></span></code></pre></div></li></ul><h3 id=part-2---commonly-used-tag-values>Part 2 - Commonly used tag values<a hidden class=anchor aria-hidden=true href=#part-2---commonly-used-tag-values>#</a></h3><table><thead><tr><th>Tag (hex)</th><th>Type</th></tr></thead><tbody><tr><td><code>0x02</code></td><td><code>INTEGER</code></td></tr><tr><td><code>0x03</code></td><td><code>BIT STRING</code></td></tr><tr><td><code>0x04</code></td><td><code>OCTET STRING</code></td></tr><tr><td><code>0x05</code></td><td><code>NULL</code></td></tr><tr><td><code>0x06</code></td><td><code>OBJECT IDENTIFIER</code></td></tr><tr><td><code>0x0C</code></td><td><code>UTF8String</code></td></tr><tr><td><code>0x10</code> (<code>0x30</code>*)</td><td><code>SEQUENCE</code> and <code>SEQUENCE OF</code></td></tr><tr><td><code>0x11</code> (<code>0x31</code>*)</td><td><code>SET</code> and <code>SET OF</code></td></tr></tbody></table><p>* The two tags marked with a <code>*</code> are always encoded as 0x30 or 0x31, because bit 6 is used to indicate whether a field is Constructed vs Primitive. These tags are always Constructed, so their encoding has bit 6 set to 1.</p><ul><li><a href=https://en.wikipedia.org/wiki/X.690#Identifier_octets>Here is the complete list of Identifier octets</a> for tags used in DER</li></ul><h3 id=dissect-a-key>Part 3 - Steps to dissect a private key generated by openssl<a hidden class=anchor aria-hidden=true href=#dissect-a-key>#</a></h3><p>Lets use a sample 2048 bit PKCS #1 RSA private key as an example.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ cat /tmp/id_rsa_2048_pkcs1.pem
+</span></span><span class=line><span class=cl>-----BEGIN RSA PRIVATE KEY-----
+</span></span><span class=line><span class=cl>MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc<span class=o>=</span>
+</span></span><span class=line><span class=cl>-----END RSA PRIVATE KEY-----
+</span></span></code></pre></div><ol><li>Remove the delimiters (encapsulation boundaries) used to demarcate the beginning and end of encoded data block in PEM format (applicable to both public and private keys)<ul><li>Delete the first and last line using <code>sed</code> tool</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sed <span class=s1>&#39;1d;$d&#39;</span> /tmp/id_rsa_2048_pkcs1.pem
+</span></span><span class=line><span class=cl>MIIEpQIBAAKCAQEA0PAAi6cnOKQHuo/+hW0rBz/ffBa+nQjjkb/3Gpu1MOMXkxjA
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>A7zn2iCt+hOBlwibgl6lVM0/kZCgbxoWYI7TJll3Prg6SOYEIG8xKsc<span class=o>=</span>
+</span></span></code></pre></div></li><li>Decode the base64 encoded text using <code>base64</code> tool and save the output in a file (contents will be binary)<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sed <span class=s1>&#39;1d;$d&#39;</span> /tmp/id_rsa_2048_pkcs1.pem <span class=p>|</span> base64 -d &gt; /tmp/id_rsa_2048_pkcs1.decoded
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ file /tmp/id_rsa_2048_pkcs1.decoded
+</span></span><span class=line><span class=cl>/tmp/id_rsa_2048_pkcs1.decoded: DER Encoded Key Pair, <span class=m>2048</span> bits
+</span></span></code></pre></div></li><li>Display the contents of file in hex using <code>hexdump</code> or <code>xxd</code><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ cat /tmp/id_rsa_2048_pkcs1.decoded <span class=p>|</span> hexdump -e <span class=s1>&#39;24/1 &#34;%.2x &#34; &#34;\n&#34;&#39;</span>
+</span></span><span class=line><span class=cl><span class=m>30</span> <span class=m>82</span> <span class=m>04</span> a5 <span class=m>02</span> <span class=m>01</span> <span class=m>00</span> <span class=m>02</span> <span class=m>82</span> <span class=m>01</span> <span class=m>01</span> <span class=m>00</span> d0 f0 <span class=m>00</span> 8b a7 <span class=m>27</span> <span class=m>38</span> a4 <span class=m>07</span> ba 8f fe
+</span></span><span class=line><span class=cl><span class=m>85</span> 6d 2b <span class=m>07</span> 3f df 7c <span class=m>16</span> be 9d <span class=m>08</span> e3 <span class=m>91</span> bf f7 1a 9b b5 <span class=m>30</span> e3 <span class=m>17</span> <span class=m>93</span> <span class=m>18</span> c0
+</span></span><span class=line><span class=cl>ae <span class=m>58</span> a6 a3 <span class=m>80</span> <span class=m>17</span> f7 e6 4d a1 <span class=m>11</span> d4 <span class=m>88</span> e0 <span class=m>22</span> 8e 4e b6 cb 2c 8c e7 cb e9
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl><span class=m>03</span> bc e7 da <span class=m>20</span> ad fa <span class=m>13</span> <span class=m>81</span> <span class=m>97</span> <span class=m>08</span> 9b <span class=m>82</span> 5e a5 <span class=m>54</span> <span class=nb>cd</span> 3f <span class=m>91</span> <span class=m>90</span> a0 6f 1a <span class=m>16</span>
+</span></span><span class=line><span class=cl><span class=m>60</span> 8e d3 <span class=m>26</span> <span class=m>59</span> <span class=m>77</span> 3e b8 3a <span class=m>48</span> e6 <span class=m>04</span> <span class=m>20</span> 6f <span class=m>31</span> 2a c7
+</span></span></code></pre></div></li><li>The sequence of bytes in hex are now ready to be analyzed</li></ol><h3 id=part-4---examining-a-pkcs-1-rsa-private-key-in-pem-format>Part 4 - Examining a PKCS #1 RSA private key in PEM format<a hidden class=anchor aria-hidden=true href=#part-4---examining-a-pkcs-1-rsa-private-key-in-pem-format>#</a></h3><ul><li><a href=#dissect-a-key>Unwrap a PKCS #1 RSA private key to display the contents in hex</a><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ grep <span class=s2>&#34;BEGIN\|END&#34;</span> id_rsa_1024.pkcs1.pem
+</span></span><span class=line><span class=cl>-----BEGIN RSA PRIVATE KEY-----
+</span></span><span class=line><span class=cl>-----END RSA PRIVATE KEY-----
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ sed <span class=s1>&#39;1d;$d&#39;</span> id_rsa_1024.pkcs1.pem <span class=p>|</span> base64 -d <span class=p>|</span> hexdump -ve <span class=s1>&#39;24/1 &#34;%.2x &#34; &#34;\n&#34;&#39;</span>
+</span></span><span class=line><span class=cl><span class=m>30</span> <span class=m>82</span> <span class=m>02</span> 5e <span class=m>02</span> <span class=m>01</span> <span class=m>00</span> <span class=m>02</span> <span class=m>81</span> <span class=m>81</span> <span class=m>00</span> b4 <span class=m>11</span> 9a 1f b6 <span class=m>22</span> <span class=m>55</span> e4 2c <span class=m>24</span> 6b 4f f4
+</span></span><span class=line><span class=cl><span class=m>26</span> 9a <span class=m>93</span> 6e 2d <span class=m>12</span> <span class=m>84</span> 1b e0 e1 <span class=m>44</span> 8e e1 <span class=m>98</span> <span class=m>20</span> 7a <span class=m>84</span> <span class=m>53</span> c5 <span class=m>12</span> c1 b0 <span class=m>09</span> ba
+</span></span><span class=line><span class=cl><span class=m>77</span> <span class=m>62</span> f6 b7 5d <span class=m>46</span> <span class=m>81</span> 7e 7d 8c fa <span class=m>91</span> <span class=m>04</span> 8a <span class=m>49</span> 0f <span class=m>29</span> 1a 4d ac cb cb e8 4c
+</span></span><span class=line><span class=cl><span class=m>55</span> 3f <span class=m>05</span> <span class=m>95</span> cf a6 <span class=m>24</span> ee <span class=m>34</span> <span class=nb>cd</span> <span class=m>68</span> 9a <span class=m>76</span> <span class=m>62</span> <span class=m>38</span> <span class=m>44</span> a4 <span class=m>48</span> 2f <span class=m>09</span> ca <span class=m>84</span> 8f ff
+</span></span><span class=line><span class=cl>fe 6b <span class=m>11</span> e2 <span class=m>97</span> 8f 7a <span class=m>74</span> a4 b7 <span class=m>86</span> 4a 7e d2 6d <span class=m>68</span> <span class=m>14</span> 4c c3 <span class=m>72</span> <span class=m>50</span> <span class=m>94</span> fd 9b
+</span></span><span class=line><span class=cl>c2 b1 dc <span class=m>04</span> <span class=m>71</span> aa <span class=m>95</span> b4 <span class=m>93</span> aa d8 <span class=m>99</span> c5 <span class=m>10</span> 2f <span class=m>61</span> 1c 4c d3 <span class=m>02</span> <span class=m>03</span> <span class=m>01</span> <span class=m>00</span> <span class=m>01</span>
+</span></span><span class=line><span class=cl><span class=m>02</span> <span class=m>81</span> <span class=m>81</span> <span class=m>00</span> a8 <span class=m>96</span> de <span class=m>55</span> <span class=m>18</span> <span class=m>62</span> <span class=m>77</span> <span class=m>46</span> <span class=m>44</span> e9 e8 2b <span class=m>18</span> 6c d8 <span class=m>46</span> <span class=m>76</span> 5d ee bb
+</span></span><span class=line><span class=cl>0f 9a f1 6e 0d d4 3b <span class=m>69</span> <span class=m>15</span> 2c <span class=m>35</span> 7e 0a bc 9b <span class=m>03</span> d0 b8 1c <span class=m>48</span> df 8e 8e <span class=m>07</span>
+</span></span><span class=line><span class=cl><span class=m>89</span> <span class=m>95</span> <span class=m>24</span> dc <span class=m>27</span> d0 <span class=m>37</span> <span class=m>64</span> <span class=m>85</span> b4 <span class=m>36</span> f3 <span class=m>48</span> <span class=m>78</span> 1a <span class=m>36</span> <span class=m>28</span> d9 9b <span class=m>41</span> 1d b3 7e <span class=m>09</span>
+</span></span><span class=line><span class=cl>a0 a3 ff ce 0d 9d bb <span class=m>48</span> <span class=m>50</span> <span class=m>47</span> 6a e2 <span class=m>00</span> ae d3 <span class=m>97</span> 2e d9 b1 3d 7d <span class=m>02</span> <span class=m>77</span> ce
+</span></span><span class=line><span class=cl>5a <span class=m>10</span> e1 b8 f0 ca ee d4 ff <span class=m>76</span> <span class=m>43</span> <span class=m>02</span> d5 1a 5d <span class=m>13</span> <span class=m>98</span> <span class=m>50</span> <span class=m>58</span> d9 6d <span class=m>31</span> <span class=m>19</span> <span class=m>00</span>
+</span></span><span class=line><span class=cl><span class=m>11</span> 5d 6a <span class=m>46</span> f5 bb ed <span class=m>85</span> <span class=m>01</span> <span class=m>44</span> 5f a1 <span class=m>02</span> <span class=m>41</span> <span class=m>00</span> e3 a0 <span class=m>46</span> dc <span class=m>04</span> <span class=m>89</span> <span class=m>34</span> d9 8c
+</span></span><span class=line><span class=cl>a8 f8 1f <span class=m>66</span> 5c 8b <span class=m>16</span> <span class=m>65</span> <span class=m>47</span> 9e <span class=m>20</span> <span class=m>44</span> 6b 7d <span class=m>66</span> <span class=m>98</span> f4 e7 0b d7 <span class=m>97</span> df 8a <span class=m>41</span>
+</span></span><span class=line><span class=cl>d9 1a 3e <span class=m>28</span> <span class=m>16</span> 3b d9 <span class=m>35</span> f6 b1 bc <span class=m>30</span> 2d f3 e5 0d c0 e0 <span class=m>57</span> 2e <span class=m>38</span> 7e <span class=m>55</span> <span class=m>88</span>
+</span></span><span class=line><span class=cl>2d <span class=m>46</span> da <span class=m>98</span> 4f <span class=m>63</span> <span class=m>31</span> <span class=m>02</span> <span class=m>41</span> <span class=m>00</span> ca <span class=m>83</span> bc <span class=m>09</span> <span class=m>27</span> b1 fe <span class=m>82</span> <span class=m>79</span> 1b <span class=m>75</span> 9c b4 d7
+</span></span><span class=line><span class=cl>e8 3f 4a 8d <span class=m>41</span> 1b 1f 9d 5b c2 <span class=m>62</span> 3b <span class=m>01</span> <span class=m>61</span> <span class=m>17</span> 8e <span class=m>79</span> 4b <span class=m>32</span> d0 e2 e3 <span class=m>11</span> b3
+</span></span><span class=line><span class=cl>7f c7 <span class=m>04</span> 9c <span class=m>33</span> 0b <span class=m>53</span> <span class=m>93</span> 1a <span class=m>09</span> 7a c3 <span class=m>34</span> <span class=m>85</span> 6a b1 <span class=m>52</span> <span class=m>80</span> 8e <span class=m>99</span> <span class=m>90</span> 0f <span class=m>64</span> cf
+</span></span><span class=line><span class=cl><span class=m>07</span> <span class=m>43</span> <span class=m>02</span> <span class=m>41</span> <span class=m>00</span> d8 <span class=m>52</span> fa e4 9f de f1 7e 0a c2 8e <span class=m>43</span> f1 <span class=m>18</span> e4 0a 1d a8 <span class=m>89</span>
+</span></span><span class=line><span class=cl>6b 6a fa a8 8b <span class=m>77</span> b3 cf 5c 1e c1 <span class=m>33</span> ed <span class=m>86</span> <span class=m>14</span> d8 6e d7 d4 <span class=m>01</span> 7e b5 5d <span class=m>44</span>
+</span></span><span class=line><span class=cl>9e 6f 3f 4c b9 <span class=m>93</span> 6f <span class=m>89</span> <span class=m>04</span> f1 <span class=m>65</span> <span class=m>39</span> <span class=m>12</span> fa 3e e5 <span class=m>46</span> 5b <span class=m>57</span> 9f <span class=m>11</span> <span class=m>02</span> <span class=m>40</span> <span class=m>49</span>
+</span></span><span class=line><span class=cl>ae d6 aa aa <span class=m>13</span> bc 1b <span class=m>72</span> bf <span class=m>07</span> f2 e5 <span class=m>65</span> ad 2d e2 0d <span class=m>35</span> <span class=m>04</span> 0e <span class=m>63</span> ad b0 <span class=m>33</span>
+</span></span><span class=line><span class=cl><span class=m>17</span> 6e f0 <span class=m>09</span> a7 <span class=m>20</span> <span class=m>00</span> b9 <span class=m>53</span> <span class=m>81</span> <span class=m>49</span> c6 f5 fd <span class=m>66</span> c7 <span class=m>09</span> a2 <span class=m>14</span> db ea a8 <span class=nb>cd</span> 8c
+</span></span><span class=line><span class=cl>2a 1c <span class=m>20</span> f2 e9 e3 af bc b2 a8 d4 c1 <span class=m>04</span> <span class=m>06</span> 8b <span class=m>02</span> <span class=m>41</span> <span class=m>00</span> ad c7 <span class=m>07</span> f6 <span class=m>86</span> <span class=m>26</span>
+</span></span><span class=line><span class=cl>fe 8c 1b 2a eb <span class=m>50</span> b8 <span class=m>91</span> <span class=m>69</span> ac b7 <span class=m>33</span> <span class=m>28</span> a9 <span class=m>24</span> b2 cf a7 be <span class=m>98</span> b4 b3 aa 1b
+</span></span><span class=line><span class=cl><span class=m>85</span> d6 4d <span class=m>80</span> a0 <span class=m>09</span> d2 d7 6f <span class=m>54</span> fb a2 a3 <span class=m>52</span> 9e <span class=m>68</span> f9 <span class=m>51</span> f2 <span class=m>13</span> f2 5e c3 <span class=m>71</span>
+</span></span><span class=line><span class=cl><span class=m>79</span> d7 <span class=nb>fc</span> e3 df f8 <span class=m>89</span> <span class=m>93</span> dd <span class=m>00</span>
+</span></span></code></pre></div></li></ul><h4 id=dissection-of-pkcs1-private-key-der-encoding>Dissection of PKCS#1 Private key DER encoding<a hidden class=anchor aria-hidden=true href=#dissection-of-pkcs1-private-key-der-encoding>#</a></h4><ul><li><span class="key-text highlight-sequence-type-length">30 82 02 5e</span><ul><li><code>0x30</code> is the tag value for a <code>SEQUENCE</code></li><li><code>0x82</code> is the length. However, since the high bit (bit 7) is set (<code>0x1000 0010</code>), it indicates that the length can be found in the next 7 bits (2). Next 2 bytes <code>0x025e</code> (606 bytes) indicate the length of <code>SEQUENCE</code></li><li>The bytes following <code>0x025e</code> are the contents of <code>SEQUENCE</code></li></ul></li><li><span class="key-text highlight-integer-type-length">02 01 00</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x01</code> (1 byte) is the length of this integer</li><li>1 byte following <code>0x01</code> is <code>0x00</code> and that&rsquo;s the version (<code>0</code>)</li></ul></li><li><span class="key-text highlight-integer-type-length">02 81 81</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x81</code> is the length. However, since the high bit (bit 7) is set (<code>0x1000 0001</code>), it indicates that the length can be found in the next 7 bits (next 1 byte). So, <code>0x81</code> (129 bytes) is the length of <code>INTEGER</code></li><li>129 bytes following <code>0x81</code> represent the public modulus</li></ul></li><li><span class="key-text highlight-modulus">00 b4 11 9a 1f b6 22 55 e4 2c 24 6b 4f f4
 26 9a 93 6e 2d 12 84 1b e0 e1 44 8e e1 98 20 7a 84 53 c5 12 c1 b0 09 ba
 77 62 f6 b7 5d 46 81 7e 7d 8c fa 91 04 8a 49 0f 29 1a 4d ac cb cb e8 4c
 55 3f 05 95 cf a6 24 ee 34 cd 68 9a 76 62 38 44 a4 48 2f 09 ca 84 8f ff
 fe 6b 11 e2 97 8f 7a 74 a4 b7 86 4a 7e d2 6d 68 14 4c c3 72 50 94 fd 9b
-c2 b1 dc 04 71 aa 95 b4 93 aa d8 99 c5 10 2f 61 1c 4c d3</span>
-<ul>
-<li>Value of public modulus represented in 129 bytes</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 03</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x03</code> (3 bytes) is the length of this integer</li>
-<li>3 bytes following <code>0x03</code> represent the public exponent</li>
-</ul>
-</li>
-<li><span class="key-text highlight-exponent">01 00 01</span>
-<ul>
-<li>Value of public exponent (65537)</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 81 81</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x81</code> is the length. However, since the high bit (bit 7) is set (<code>0x1000 0001</code>), it indicates that the length can be found in the next 7 bits (next 1 byte). So, <code>0x81</code> (129 bytes) is the length of <code>INTEGER</code></li>
-<li>129 bytes following <code>0x81</code> represent the private exponent</li>
-</ul>
-</li>
-<li><span class="key-text highlight-private-exponent">00 a8 96 de 55 18 62 77 46 44 e9 e8 2b 18 6c d8 46 76 5d ee bb
+c2 b1 dc 04 71 aa 95 b4 93 aa d8 99 c5 10 2f 61 1c 4c d3</span><ul><li>Value of public modulus represented in 129 bytes</li></ul></li><li><span class="key-text highlight-integer-type-length">02 03</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x03</code> (3 bytes) is the length of this integer</li><li>3 bytes following <code>0x03</code> represent the public exponent</li></ul></li><li><span class="key-text highlight-exponent">01 00 01</span><ul><li>Value of public exponent (65537)</li></ul></li><li><span class="key-text highlight-integer-type-length">02 81 81</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x81</code> is the length. However, since the high bit (bit 7) is set (<code>0x1000 0001</code>), it indicates that the length can be found in the next 7 bits (next 1 byte). So, <code>0x81</code> (129 bytes) is the length of <code>INTEGER</code></li><li>129 bytes following <code>0x81</code> represent the private exponent</li></ul></li><li><span class="key-text highlight-private-exponent">00 a8 96 de 55 18 62 77 46 44 e9 e8 2b 18 6c d8 46 76 5d ee bb
 0f 9a f1 6e 0d d4 3b 69 15 2c 35 7e 0a bc 9b 03 d0 b8 1c 48 df 8e 8e 07
 89 95 24 dc 27 d0 37 64 85 b4 36 f3 48 78 1a 36 28 d9 9b 41 1d b3 7e 09
 a0 a3 ff ce 0d 9d bb 48 50 47 6a e2 00 ae d3 97 2e d9 b1 3d 7d 02 77 ce
 5a 10 e1 b8 f0 ca ee d4 ff 76 43 02 d5 1a 5d 13 98 50 58 d9 6d 31 19 00
-11 5d 6a 46 f5 bb ed 85 01 44 5f a1</span>
-<ul>
-<li>Value of private exponent represented in 129 bytes</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 41</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x41</code> (65 bytes) is the length of this integer</li>
-<li>65 bytes following <code>0x41</code> represent <code>prime1</code></li>
-</ul>
-</li>
-<li><span class="key-text highlight-prime1">00 e3 a0 46 dc 04 89 34 d9 8c
+11 5d 6a 46 f5 bb ed 85 01 44 5f a1</span><ul><li>Value of private exponent represented in 129 bytes</li></ul></li><li><span class="key-text highlight-integer-type-length">02 41</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x41</code> (65 bytes) is the length of this integer</li><li>65 bytes following <code>0x41</code> represent <code>prime1</code></li></ul></li><li><span class="key-text highlight-prime1">00 e3 a0 46 dc 04 89 34 d9 8c
 a8 f8 1f 66 5c 8b 16 65 47 9e 20 44 6b 7d 66 98 f4 e7 0b d7 97 df 8a 41
 d9 1a 3e 28 16 3b d9 35 f6 b1 bc 30 2d f3 e5 0d c0 e0 57 2e 38 7e 55 88
-2d 46 da 98 4f 63 31</span>
-<ul>
-<li>Value of <code>prime1</code> represented in 65 bytes</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 41</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x41</code> (65 bytes) is the length of this integer</li>
-<li>65 bytes following <code>0x41</code> represent <code>prime2</code></li>
-</ul>
-</li>
-<li><span class="key-text highlight-prime2">00 ca 83 bc 09 27 b1 fe 82 79 1b 75 9c b4 d7
+2d 46 da 98 4f 63 31</span><ul><li>Value of <code>prime1</code> represented in 65 bytes</li></ul></li><li><span class="key-text highlight-integer-type-length">02 41</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x41</code> (65 bytes) is the length of this integer</li><li>65 bytes following <code>0x41</code> represent <code>prime2</code></li></ul></li><li><span class="key-text highlight-prime2">00 ca 83 bc 09 27 b1 fe 82 79 1b 75 9c b4 d7
 e8 3f 4a 8d 41 1b 1f 9d 5b c2 62 3b 01 61 17 8e 79 4b 32 d0 e2 e3 11 b3
 7f c7 04 9c 33 0b 53 93 1a 09 7a c3 34 85 6a b1 52 80 8e 99 90 0f 64 cf
-07 43</span>
-<ul>
-<li>Value of <code>prime2</code> represented in 65 bytes</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 41</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x41</code> (65 bytes) is the length of this integer</li>
-<li>65 bytes following <code>0x41</code> represent <code>exponent1</code></li>
-</ul>
-</li>
-<li><span class="key-text highlight-exp1">00 d8 52 fa e4 9f de f1 7e 0a c2 8e 43 f1 18 e4 0a 1d a8 89
+07 43</span><ul><li>Value of <code>prime2</code> represented in 65 bytes</li></ul></li><li><span class="key-text highlight-integer-type-length">02 41</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x41</code> (65 bytes) is the length of this integer</li><li>65 bytes following <code>0x41</code> represent <code>exponent1</code></li></ul></li><li><span class="key-text highlight-exp1">00 d8 52 fa e4 9f de f1 7e 0a c2 8e 43 f1 18 e4 0a 1d a8 89
 6b 6a fa a8 8b 77 b3 cf 5c 1e c1 33 ed 86 14 d8 6e d7 d4 01 7e b5 5d 44
-9e 6f 3f 4c b9 93 6f 89 04 f1 65 39 12 fa 3e e5 46 5b 57 9f 11</span>
-<ul>
-<li>Value of <code>exponent1</code> represented in 65 bytes</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 40</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x40</code> (64 bytes) is the length of this integer</li>
-<li>64 bytes following <code>0x41</code> represent <code>exponent2</code></li>
-</ul>
-</li>
-<li><span class="key-text highlight-exp2">49
+9e 6f 3f 4c b9 93 6f 89 04 f1 65 39 12 fa 3e e5 46 5b 57 9f 11</span><ul><li>Value of <code>exponent1</code> represented in 65 bytes</li></ul></li><li><span class="key-text highlight-integer-type-length">02 40</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x40</code> (64 bytes) is the length of this integer</li><li>64 bytes following <code>0x41</code> represent <code>exponent2</code></li></ul></li><li><span class="key-text highlight-exp2">49
 ae d6 aa aa 13 bc 1b 72 bf 07 f2 e5 65 ad 2d e2 0d 35 04 0e 63 ad b0 33
 17 6e f0 09 a7 20 00 b9 53 81 49 c6 f5 fd 66 c7 09 a2 14 db ea a8 cd 8c
-2a 1c 20 f2 e9 e3 af bc b2 a8 d4 c1 04 06 8b</span>
-<ul>
-<li>Value of <code>exponent2</code> represented in 64 bytes</li>
-</ul>
-</li>
-<li><span class="key-text highlight-integer-type-length">02 41</span>
-<ul>
-<li><code>0x02</code> is the tag value of an <code>INTEGER</code></li>
-<li><code>0x41</code> (65 bytes) is the length of this integer</li>
-<li>65 bytes following <code>0x41</code> represent <code>coefficient</code></li>
-</ul>
-</li>
-<li><span class="key-text highlight-coefficient">00 ad c7 07 f6 86 26
+2a 1c 20 f2 e9 e3 af bc b2 a8 d4 c1 04 06 8b</span><ul><li>Value of <code>exponent2</code> represented in 64 bytes</li></ul></li><li><span class="key-text highlight-integer-type-length">02 41</span><ul><li><code>0x02</code> is the tag value of an <code>INTEGER</code></li><li><code>0x41</code> (65 bytes) is the length of this integer</li><li>65 bytes following <code>0x41</code> represent <code>coefficient</code></li></ul></li><li><span class="key-text highlight-coefficient">00 ad c7 07 f6 86 26
 fe 8c 1b 2a eb 50 b8 91 69 ac b7 33 28 a9 24 b2 cf a7 be 98 b4 b3 aa 1b
 85 d6 4d 80 a0 09 d2 d7 6f 54 fb a2 a3 52 9e 68 f9 51 f2 13 f2 5e c3 71
-79 d7 fc e3 df f8 89 93 dd 00</span>
-<ul>
-<li>Value of <code>coefficient</code> represented in 65 bytes</li>
-</ul>
-</li>
-</ul>
-<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
-<ul>
-<li><a href="https://datatracker.ietf.org/doc/html/rfc8017#appendix-A.1.2">RFC 8017 - RSA Private Key Syntax</a></li>
-<li><a href="https://www.openssl.org/docs/man1.0.2/man1/openssl-genrsa.html">OpenSSL 1.0.2 - openssl-genrsa</a></li>
-<li><a href="https://www.openssl.org/docs/man1.0.2/man1/openssl-asn1parse.html">OpenSSL 1.0.2 - openssl-asn1parse</a></li>
-<li><a href="https://en.wikipedia.org/wiki/PKCS_1">Wiki: PKCS #1</a></li>
-<li><a href="https://en.wikipedia.org/wiki/ASN.1">Wiki: ASN.1</a></li>
-<li><a href="https://en.wikipedia.org/wiki/X.690#Length_octets">Wiki: Length octets encoding forms</a></li>
-<li><a href="https://en.wikipedia.org/wiki/X.690#Identifier_octets">Wiki: Identifier octets</a></li>
-<li><a href="https://rawcdn.githack.com/lapo-luchini/asn1js/1.2.4/index.html">ASN.1 Javascript decoder tool</a></li>
-</ul>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://partbypart.github.io/tags/pkcs%231/">Pkcs#1</a></li>
-      <li><a href="https://partbypart.github.io/tags/openssl/">Openssl</a></li>
-      <li><a href="https://partbypart.github.io/tags/rsa/">Rsa</a></li>
-      <li><a href="https://partbypart.github.io/tags/privatekey/">Privatekey</a></li>
-      <li><a href="https://partbypart.github.io/tags/deepdive/">Deepdive</a></li>
-      <li><a href="https://partbypart.github.io/tags/pem/">Pem</a></li>
-      <li><a href="https://partbypart.github.io/tags/der/">Der</a></li>
-    </ul>
-<nav class="paginav">
-  <a class="prev" href="https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>Build and Install OpenSSL 3 with FIPS module</span>
-  </a>
-  <a class="next" href="https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-public-key/">
-    <span class="title">Next »</span>
-    <br>
-    <span>Deep dive - Anatomy of a PKCS#1 RSA public key</span>
-  </a>
-</nav>
-
-
-<ul class="share-buttons">
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on x"
-            href="https://x.com/intent/tweet/?text=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f&amp;hashtags=pkcs%231%2copenssl%2crsa%2cprivatekey%2cdeepdive%2cpem%2cder">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on linkedin"
-            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f&amp;title=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;summary=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;source=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on reddit"
-            href="https://reddit.com/submit?url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f&title=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on facebook"
-            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on whatsapp"
-            href="https://api.whatsapp.com/send?text=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key%20-%20https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on telegram"
-            href="https://telegram.me/share/url?text=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f">
-            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on ycombinator"
-            href="https://news.ycombinator.com/submitlink?t=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&u=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f">
-            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
-                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
-                <path
-                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
-            </svg>
-        </a>
-    </li>
-</ul>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-    <span>&copy; 2024 <a href="https://partbypart.github.io/">Learn part by part</a></span>
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a><br/>
-        <a href="https://www.flaticon.com/free-icons/timber" title="timber icons">Timber icons created by imaginationlol - Flaticon</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
-
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-</body>
-
-</html>
+79 d7 fc e3 df f8 89 93 dd 00</span><ul><li>Value of <code>coefficient</code> represented in 65 bytes</li></ul></li></ul><h3 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h3><ul><li><a href=https://datatracker.ietf.org/doc/html/rfc8017#appendix-A.1.2>RFC 8017 - RSA Private Key Syntax</a></li><li><a href=https://www.openssl.org/docs/man1.0.2/man1/openssl-genrsa.html>OpenSSL 1.0.2 - openssl-genrsa</a></li><li><a href=https://www.openssl.org/docs/man1.0.2/man1/openssl-asn1parse.html>OpenSSL 1.0.2 - openssl-asn1parse</a></li><li><a href=https://en.wikipedia.org/wiki/PKCS_1>Wiki: PKCS #1</a></li><li><a href=https://en.wikipedia.org/wiki/ASN.1>Wiki: ASN.1</a></li><li><a href=https://en.wikipedia.org/wiki/X.690#Length_octets>Wiki: Length octets encoding forms</a></li><li><a href=https://en.wikipedia.org/wiki/X.690#Identifier_octets>Wiki: Identifier octets</a></li><li><a href=https://rawcdn.githack.com/lapo-luchini/asn1js/1.2.4/index.html>ASN.1 Javascript decoder tool</a></li></ul></div><footer class=post-footer><ul class=post-tags><li><a href=https://partbypart.github.io/tags/pkcs%231/>Pkcs#1</a></li><li><a href=https://partbypart.github.io/tags/openssl/>Openssl</a></li><li><a href=https://partbypart.github.io/tags/rsa/>Rsa</a></li><li><a href=https://partbypart.github.io/tags/privatekey/>Privatekey</a></li><li><a href=https://partbypart.github.io/tags/deepdive/>Deepdive</a></li><li><a href=https://partbypart.github.io/tags/pem/>Pem</a></li><li><a href=https://partbypart.github.io/tags/der/>Der</a></li></ul><nav class=paginav><a class=prev href=https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/><span class=title>« Prev</span><br><span>Build and Install OpenSSL 3 with FIPS module</span>
+</a><a class=next href=https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-public-key/><span class=title>Next »</span><br><span>Deep dive - Anatomy of a PKCS#1 RSA public key</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on x" href="https://x.com/intent/tweet/?text=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f&amp;hashtags=pkcs%231%2copenssl%2crsa%2cprivatekey%2cdeepdive%2cpem%2cder"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f&amp;title=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;summary=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;source=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f&title=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on whatsapp" href="https://api.whatsapp.com/send?text=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key%20-%20https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on telegram" href="https://telegram.me/share/url?text=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentcolor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Deep dive - Anatomy of a PKCS#1 RSA private key on ycombinator" href="https://news.ycombinator.com/submitlink?t=Deep%20dive%20-%20Anatomy%20of%20a%20PKCS%231%20RSA%20private%20key&u=https%3a%2f%2fpartbypart.github.io%2fposts%2fdeep-dive-pkcs1-rsa-private-key%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentcolor" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2024 <a href=https://partbypart.github.io/>Learn part by part</a></span>
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a><br><a href=https://www.flaticon.com/free-icons/timber title="timber icons">Timber icons created by imaginationlol - Flaticon</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>

@@ -1,467 +1,128 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-<title>Build and Install OpenSSL 3 with FIPS module | Learn part by part</title>
-<meta name="keywords" content="openssl3, fips, howto">
-<meta name="description" content="Learn how to build and install OpenSSL 3 (with fips module) on Linux">
-<meta name="author" content="">
-<link rel="canonical" href="https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/">
-<meta name="google-site-verification" content="G-MF6MC03DXC">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.8834bbfc85f85dae1fabab19c063b95ea1edb56c60989b5fd879c5084b58f9f1.css" integrity="sha256-iDS7/IX4Xa4fq6sZwGO5XqHttWxgmJtf2HnFCEtY&#43;fE=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://partbypart.github.io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="https://partbypart.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://partbypart.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://partbypart.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://partbypart.github.io/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
-            }
-        }
-
-    </style>
-</noscript>
-  
-    
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-MF6MC03DXC"></script>
-      <script>
-        var doNotTrack = false;
-        if ( false ) {
-          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
-          var doNotTrack = (dnt == "1" || dnt == "yes");
-        }
-        if (!doNotTrack) {
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-MF6MC03DXC');
-        }
-      </script>
-    
-  
-
-<meta property="og:title" content="Build and Install OpenSSL 3 with FIPS module" />
-<meta property="og:description" content="Learn how to build and install OpenSSL 3 (with fips module) on Linux" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/" />
-<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/OpenSSL_logo.svg/1280px-OpenSSL_logo.svg.png" /><meta property="article:section" content="posts" />
-
-<meta property="og:site_name" content="Part by Part" />
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/OpenSSL_logo.svg/1280px-OpenSSL_logo.svg.png" />
-<meta name="twitter:title" content="Build and Install OpenSSL 3 with FIPS module"/>
-<meta name="twitter:description" content="Learn how to build and install OpenSSL 3 (with fips module) on Linux"/>
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://partbypart.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "Build and Install OpenSSL 3 with FIPS module",
-      "item": "https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Build and Install OpenSSL 3 with FIPS module",
-  "name": "Build and Install OpenSSL 3 with FIPS module",
-  "description": "Learn how to build and install OpenSSL 3 (with fips module) on Linux",
-  "keywords": [
-    "openssl3", "fips", "howto"
-  ],
-  "articleBody": "Steps Install required build tools and prerequisites Rocky Linux $ sudo groupinfo \"Development tools\" |less $ sudo yum update -y \u0026\u0026 sudo yum groupinstall -y \"Development tools\" ... $ sudo yum install -y perl ... # Install curl if not installed already $ curl --version \u003e/dev/null 2\u003e\u00261 || \\ { echo \"Curl not found. Installing Curl...\"; sudo yum install -y curl; } $ mkdir -p ~/downloads ~/installed Ubuntu $ sudo apt update \u0026\u0026 sudo apt install build-essential curl perl $ mkdir -p ~/downloads ~/installed ... Download and untar required openssl version source $ curl -L https://www.openssl.org/source/openssl-3.0.8.tar.gz | \\ tar xvz -C ~/downloads/ OpenSSL 3.0.8 is the FIPS validated version (Certificate)(Valid until: 9/21/2026) Create a build directory and check platform support $ cd ~/downloads/openssl-3.0.8 $ mkdir BUILD \u0026\u0026 cd BUILD $ uname -sm Linux aarch64 $ ../Configure LIST | grep linux-aarch linux-aarch64 Configure Makefile for build In previous versions of OpenSSL, the config script determined the platform type and compiler and then called Configure. Starting with OpenSSL 3, they are the same. Configure the Makefile $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ export PREFIXDIR=$HOME/installed/openssl-3.0.8 $ CFLAGS=\"-ggdb3 -O0\" ../Configure --api=1.1.0 no-deprecated --debug \\ --openssldir=$PREFIXDIR/ssl --prefix=$PREFIXDIR --strict-warnings \\ no-asm no-shared enable-fips enable-trace threads Configuring OpenSSL version 3.0.8 for target linux-aarch64 Using os-specific seed configuration Created configdata.pm Running configdata.pm Created Makefile.in Created Makefile Created include/openssl/configuration.h ********************************************************************** *** *** *** OpenSSL has been successfully configured *** *** *** *** If you encounter a problem while building, please open an *** *** issue on GitHub *** *** and include the output from the following command: *** *** *** *** perl configdata.pm --dump *** *** *** *** (If you are new to OpenSSL, you might want to consult the *** *** 'Troubleshooting' section in the INSTALL.md file first) *** *** *** ********************************************************************** # Verify if our config options are in use $ perl configdata.pm --dump | grep \"\\ \\|asm_arch\" CFLAGS =\u003e \"-Wall -O0 -g\", asm_arch =\u003e \"aarch64\", CFLAGS = -ggdb3 -O0 CFLAGS = -ggdb3 -O0 -DPEDANTIC -pedantic -Wno-long-long \\ -DUNUSEDRESULT_DEBUG -Wall -Wmissing-declarations -Wextra \\ -Wno-unused-parameter -Wno-missing-field-initializers -Wswitch \\ -Wsign-compare -Wshadow -Wformat \\ -Wtype-limits -Wundef -Werror -Wmissing-prototypes -Wstrict-prototypes Where, CFLAGS: Environment variable that can be set to specify additional switches to be passed to a compiler -ggdb3: Produce debugging information for use by GDB. Level 3 includes extra information, such as all the macro definitions present in the program -O0: Most optimizations are completely disabled --api=1.1.0 no-deprecated: Remove support for all APIs that were deprecated in OpenSSL version 1.1.0 or below. --debug: Build OpenSSL with debugging symbols and zero optimization level. --openssldir: Directory for OpenSSL configuration files, and also the default certificate and key store. OpenSSL binary and applications linked with OpenSSL libraries will look for openssl.cnf by default in the directory specified with --openssldir The directory should be chosen carefully to reflect the openssl.cnf path on machines where OpenSSL or applications linked with OpenSSL are installed (not where they’re built) --prefix: The top of the installation directory tree OpenSSL binary and applications linked with OpenSSL libraries will look for OpenSSL modules by default in the following directory structure: /lib/ossl-modules The directory should be chosen carefully to reflect the paths on machines where OpenSSL or applications linked with OpenSSL are installed (not where they’re built) Do not worry about having the same path prefix (as installed machine) on the build machine. Artifacts on build machine can be installed at any arbitrary path of your choice using DESTDIR option of make --strict-warnings: A developer flag that switches on various compiler options recommended for OpenSSL development. It only works when using gcc or clang as the compiler. no-asm: Do not use assembler code. Ideal for debugging/troubleshooting option and not for production use no-shared: Do not create shared libraries, only static ones. enable-fips: Build (and install) the FIPS provider enable-trace: Build with support for the integrated tracing api. threads: Build with support for multi-threaded applications Build the artifacts $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ make -j$(nproc) 2\u003e\u00261 | tee /tmp/ossl3-make-output-$(date +\"%b-%d-%Y\").log.0 ... /usr/bin/perl \"-I.\" -Mconfigdata \"../util/dofile.pl\" \\ \"-oMakefile\" ../util/wrap.pl.in \u003e \"util/wrap.pl\" chmod a+x util/wrap.pl make[1]: Leaving directory '/home/alice/downloads/openssl-3.0.8/BUILD' Where, $(nproc): The number of CPU cores/threads available 2\u003e\u00261: File descriptor 1 is the standard output (stdout). File descriptor 2 is the standard error (stderr). Redirect stderr to a file named stdout \u0026 indicates that what follows and precedes is a file descriptor, and not a filename tee: Using tee, you redirect stdin both to stdout and to the file specified as argument to tee Verify if the installer will be installing the artifacts in required build machine path. Note that this verification does not install the artifacts. It’s a dry-run. $ make DESTDIR=/tmp -n install_fips | grep -m1 \"fips.so\" echo \"install providers/fips.so -\u003e \\ /tmp/home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so\" As you can see, DESTDIR is the prefix for --prefix option given during configuration. The applications and libraries however are built with their MODULESDIR configured as /home/alice/installed/openssl-3.0.8. DESTDIR does not affect any existing artifact configurations. It is purely used for installing the artifacts on build machine. $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ ./apps/openssl version -m MODULESDIR: \"/home/alice/installed/openssl-3.0.8/lib/ossl-modules\" NOTE: It’s not mandatory to use DESTDIR if your build machine and installer machine are the same Run self tests (optional) $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ make test ... Install artifacts on a given path $ make install_sw install_fips install_ssldirs ... DESTDIR is not required if build machine and installed machine are same (Meaning: OpenSSL binary and libraries will be used on the same machine where it’s built) Check artifacts $ find $PREFIXDIR -type f \\ \\( -name fipsmodule.cnf -o -name fips.so -o -name legacy.so \\ -o -name openssl -o -name libcrypto.a -o -name libssl.a \\ -o -name openssl.cnf \\) /home/alice/installed/openssl-3.0.8/bin/openssl /home/alice/installed/openssl-3.0.8/ssl/openssl.cnf /home/alice/installed/openssl-3.0.8/ssl/fipsmodule.cnf /home/alice/installed/openssl-3.0.8/lib/libssl.a /home/alice/installed/openssl-3.0.8/lib/libcrypto.a /home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so /home/alice/installed/openssl-3.0.8/lib/ossl-modules/legacy.so Install FIPS provider The Installation of the FIPS provider consists of two steps. In the first step, the shared library of fips (fips.so) is copied to its installed location (The location set in MODULESDIR in step 6) In the second step, the openssl fipsinstall command is executed, which completes the installation by doing the following two things: Runs the FIPS module self tests Generates the so-called FIPS module configuration file containing information about the module such as the module checksum (and for OpenSSL 3.0 the self test status). The FIPS module must have the self tests run, and the FIPS module config file output generated on every machine that it is to be used on. Commands Make sure fips.so is available in MODULESDIR directory $ ls /home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so Run the openssl fipsinstall command # Contents of fipsmodule.cnf before running the command $ cat $PREFIXDIR/ssl/fipsmodule.cnf [fips_sect] activate = 1 conditional-errors = 1 security-checks = 1 module-mac = CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B $ $PREFIXDIR/bin/openssl fipsinstall -out $PREFIXDIR/ssl/fipsmodule.cnf \\ -module $PREFIXDIR/lib/ossl-modules/fips.so # Contents of fipsmodule.cnf after running the command $ cat $PREFIXDIR/ssl/fipsmodule.cnf [fips_sect] activate = 1 install-version = 1 conditional-errors = 1 security-checks = 1 module-mac = CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B install-mac = 41:9C:38:C2:8F:59:09:43:2C:AA:2F:58:36:2D:D9:04:F9:6C:56:8B:09:E0:18:3A:2E:D6:CC:69:05:04:E1:11 install-status = INSTALL_SELF_TEST_KATS_RUN Verify FIPS provider usage # MD5 checksum calculation without fips mode activated $ echo -n \"helloworld\" | $PREFIXDIR/bin/openssl md5 MD5(stdin)= fc5e038d38a57032085441e7fe7010b0 # Make a temporary copy for testing $ cp $PREFIXDIR/ssl/openssl.cnf /tmp/openssl.cnf # Enable fips section by uncommenting \"fips = fips_sect\" $ sed -i 's/^# fips =/fips =/' /tmp/openssl.cnf $ grep \"fips = \" /tmp/openssl.cnf fips = fips_sect # Uncomment and include \"fipsmodule.cnf\" in openssl.cnf $ sed -i 's/^# .include fipsmodule.cnf/.include fipsmodule.cnf/' /tmp/openssl.cnf # Attempting to run md5 with fips module enabled should throw an error $ echo -n \"helloworld\" | \\ OPENSSL_CONF_INCLUDE=$PREFIXDIR/ssl/ \\ OPENSSL_CONF=/tmp/openssl.cnf $PREFIXDIR/bin/openssl md5 Error setting digest A03EA49FFFFF0000:error:0308010C:digital envelope routines:inner_evp_generic_fetch:unsupported:../crypto/evp/evp_fetch.c:373:Global default library context, Algorithm (MD5 : 102), Properties () A03EA49FFFFF0000:error:03000086:digital envelope routines:evp_md_init_internal:initialization error:../crypto/evp/digest.c:254: Where, OPENSSL_CONF_INCLUDE: Directory path to be prefixed for .include directives in openssl.cnf OPENSSL_CONF: Custom openssl.cnf to be used for the given command References OpenSSL download source OpenSSL Install options and instructions OpenSSL Build and Install documentation OpenSSL 3.0.8 Certificate gcc debugging options OpenSSL Makefile targets OpenSSL configuration options FIPS provider installation OpenSSL environment variables ",
-  "wordCount" : "1308",
-  "inLanguage": "en",
-  "image":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/OpenSSL_logo.svg/1280px-OpenSSL_logo.svg.png","datePublished": "0001-01-01T00:00:00Z",
-  "dateModified": "0001-01-01T00:00:00Z",
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Learn part by part",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://partbypart.github.io/favicon.ico"
-    }
-  }
-}
-</script>
-</head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
-    <nav class="nav">
-        <div class="logo">
-            <a href="https://partbypart.github.io/" accesskey="h" title="PartByPart (Alt + H)">
-                <img src="https://partbypart.github.io/apple-touch-icon.png" alt="" aria-label="logo"
-                    height="35">PartByPart</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="https://partbypart.github.io/categories/" title="CATEGORIES">
-                    <span>CATEGORIES</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://partbypart.github.io/tags/" title="TAGS">
-                    <span>TAGS</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://partbypart.github.io/archives/" title="ARCHIVES">
-                    <span>ARCHIVES</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://partbypart.github.io/search/" title="SEARCH (Alt &#43; /)" accesskey=/>
-                    <span>SEARCH</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <div class="breadcrumbs"><a href="https://partbypart.github.io/">Home</a>&nbsp;»&nbsp;<a href="https://partbypart.github.io/posts/">Posts</a></div>
-    <h1 class="post-title entry-hint-parent">
-      Build and Install OpenSSL 3 with FIPS module
-    </h1>
-    <div class="post-description">
-      Learn how to build and install OpenSSL 3 (with fips module) on Linux
-    </div>
-    <div class="post-meta">7 min
-
-</div>
-  </header> 
-  <div class="post-content"><h3 id="steps">Steps<a hidden class="anchor" aria-hidden="true" href="#steps">#</a></h3>
-<ol>
-<li>Install required build tools and <a href="https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#prerequisites">prerequisites</a>
-<ul>
-<li>Rocky Linux
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ sudo groupinfo <span class="s2">&#34;Development tools&#34;</span> <span class="p">|</span>less
-</span></span><span class="line"><span class="cl">$ sudo yum update -y <span class="o">&amp;&amp;</span> sudo yum groupinstall -y <span class="s2">&#34;Development tools&#34;</span>
-</span></span><span class="line"><span class="cl">...
-</span></span><span class="line"><span class="cl">$ sudo yum install -y perl
-</span></span><span class="line"><span class="cl">...
-</span></span><span class="line"><span class="cl"><span class="c1"># Install curl if not installed already</span>
-</span></span><span class="line"><span class="cl">$ curl --version &gt;/dev/null 2&gt;<span class="p">&amp;</span><span class="m">1</span> <span class="o">||</span> <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span><span class="o">{</span> <span class="nb">echo</span> <span class="s2">&#34;Curl not found. Installing Curl...&#34;</span><span class="p">;</span> sudo yum install -y curl<span class="p">;</span> <span class="o">}</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ mkdir -p ~/downloads ~/installed
-</span></span></code></pre></div></li>
-<li>Ubuntu
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ sudo apt update <span class="o">&amp;&amp;</span> sudo apt install build-essential curl perl
-</span></span><span class="line"><span class="cl">$ mkdir -p ~/downloads ~/installed
-</span></span><span class="line"><span class="cl">...
-</span></span></code></pre></div></li>
-</ul>
-</li>
-<li>Download and untar required openssl version source
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ curl -L https://www.openssl.org/source/openssl-3.0.8.tar.gz <span class="p">|</span> <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>tar xvz -C ~/downloads/
-</span></span></code></pre></div><ul>
-<li>OpenSSL 3.0.8 is the FIPS validated version (<a href="https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4282">Certificate</a>)(Valid until: 9/21/2026)</li>
-</ul>
-</li>
-<li>Create a build directory and check platform support
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ <span class="nb">cd</span> ~/downloads/openssl-3.0.8
-</span></span><span class="line"><span class="cl">$ mkdir BUILD <span class="o">&amp;&amp;</span> <span class="nb">cd</span> BUILD
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ uname -sm
-</span></span><span class="line"><span class="cl">Linux aarch64
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ ../Configure LIST <span class="p">|</span> grep linux-aarch
-</span></span><span class="line"><span class="cl">linux-aarch64
-</span></span></code></pre></div></li>
-<li>Configure <code>Makefile</code> for build
-<ul>
-<li>In previous versions of OpenSSL, the <code>config</code> script determined the platform type and compiler and then called <code>Configure</code>. Starting with OpenSSL 3, they are the same.</li>
-<li>Configure the <code>Makefile</code>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ <span class="nb">pwd</span>
-</span></span><span class="line"><span class="cl">/home/alice/downloads/openssl-3.0.8/BUILD
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ <span class="nb">export</span> <span class="nv">PREFIXDIR</span><span class="o">=</span><span class="nv">$HOME</span>/installed/openssl-3.0.8
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ <span class="nv">CFLAGS</span><span class="o">=</span><span class="s2">&#34;-ggdb3 -O0&#34;</span> ../Configure --api<span class="o">=</span>1.1.0 no-deprecated --debug <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>--openssldir<span class="o">=</span><span class="nv">$PREFIXDIR</span>/ssl --prefix<span class="o">=</span><span class="nv">$PREFIXDIR</span> --strict-warnings <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>no-asm no-shared enable-fips enable-trace threads
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Configuring OpenSSL version 3.0.8 <span class="k">for</span> target linux-aarch64
-</span></span><span class="line"><span class="cl">Using os-specific seed configuration
-</span></span><span class="line"><span class="cl">Created configdata.pm
-</span></span><span class="line"><span class="cl">Running configdata.pm
-</span></span><span class="line"><span class="cl">Created Makefile.in
-</span></span><span class="line"><span class="cl">Created Makefile
-</span></span><span class="line"><span class="cl">Created include/openssl/configuration.h
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">**********************************************************************
-</span></span><span class="line"><span class="cl">***                                                                ***
-</span></span><span class="line"><span class="cl">***   OpenSSL has been successfully configured                     ***
-</span></span><span class="line"><span class="cl">***                                                                ***
-</span></span><span class="line"><span class="cl">***   If you encounter a problem <span class="k">while</span> building, please open an    ***
-</span></span><span class="line"><span class="cl">***   issue on GitHub &lt;https://github.com/openssl/openssl/issues&gt;  ***
-</span></span><span class="line"><span class="cl">***   and include the output from the following command:           ***
-</span></span><span class="line"><span class="cl">***                                                                ***
-</span></span><span class="line"><span class="cl">***       perl configdata.pm --dump                                ***
-</span></span><span class="line"><span class="cl">***                                                                ***
-</span></span><span class="line"><span class="cl">***   <span class="o">(</span>If you are new to OpenSSL, you might want to consult the    ***
-</span></span><span class="line"><span class="cl">***   <span class="s1">&#39;Troubleshooting&#39;</span> section in the INSTALL.md file first<span class="o">)</span>      ***
-</span></span><span class="line"><span class="cl">***                                                                ***
-</span></span><span class="line"><span class="cl">**********************************************************************
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Verify if our config options are in use</span>
-</span></span><span class="line"><span class="cl">$ perl configdata.pm --dump <span class="p">|</span> grep <span class="s2">&#34;\&lt;CFLAGS\&gt; \|asm_arch&#34;</span>
-</span></span><span class="line"><span class="cl"><span class="nv">CFLAGS</span> <span class="o">=</span>&gt; <span class="s2">&#34;-Wall -O0 -g&#34;</span>,
-</span></span><span class="line"><span class="cl"><span class="nv">asm_arch</span> <span class="o">=</span>&gt; <span class="s2">&#34;aarch64&#34;</span>,
-</span></span><span class="line"><span class="cl"><span class="nv">CFLAGS</span> <span class="o">=</span> -ggdb3 -O0
-</span></span><span class="line"><span class="cl"><span class="nv">CFLAGS</span>          <span class="o">=</span> -ggdb3 -O0 -DPEDANTIC -pedantic -Wno-long-long <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>-DUNUSEDRESULT_DEBUG -Wall -Wmissing-declarations -Wextra <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>-Wno-unused-parameter -Wno-missing-field-initializers -Wswitch <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>-Wsign-compare -Wshadow -Wformat <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>-Wtype-limits -Wundef -Werror -Wmissing-prototypes -Wstrict-prototypes
-</span></span></code></pre></div></li>
-<li>Where,
-<ul>
-<li><code>CFLAGS</code>: Environment variable that can be set to specify additional switches to be passed to a compiler
-<ul>
-<li><code>-ggdb3</code>: Produce debugging information for use by GDB. Level 3 includes extra information, such as all the macro definitions present in the program</li>
-<li><code>-O0</code>: Most optimizations are completely disabled</li>
-</ul>
-</li>
-<li><code>--api=1.1.0 no-deprecated</code>: Remove support for all APIs that were deprecated in OpenSSL version 1.1.0 or below.</li>
-<li><code>--debug</code>: Build OpenSSL with debugging symbols and zero optimization level.</li>
-<li><code>--openssldir</code>: Directory for OpenSSL configuration files, and also the default certificate and key store.
-<ul>
-<li>OpenSSL binary and applications linked with OpenSSL libraries will look for <code>openssl.cnf</code> by default in the directory specified with <code>--openssldir</code></li>
-<li>The directory should be chosen carefully to reflect the <code>openssl.cnf</code> path on machines where OpenSSL or applications linked with OpenSSL are installed (not where they&rsquo;re built)</li>
-</ul>
-</li>
-<li><code>--prefix</code>: The top of the installation directory tree
-<ul>
-<li>OpenSSL binary and applications linked with OpenSSL libraries will look for OpenSSL modules by default in the following directory structure: <code>&lt;prefix_directory&gt;/lib/ossl-modules</code></li>
-<li>The directory should be chosen carefully to reflect the paths on machines where OpenSSL or applications linked with OpenSSL are installed (not where they&rsquo;re built)</li>
-<li>Do not worry about having the same path prefix (as installed machine) on the build machine. Artifacts on build machine can be installed at any arbitrary path of your choice using <code>DESTDIR</code> option of <code>make</code></li>
-</ul>
-</li>
-<li><code>--strict-warnings</code>: A developer flag that switches on various compiler options recommended for OpenSSL development. It only works when using gcc or clang as the compiler.</li>
-<li><code>no-asm</code>: Do not use assembler code. Ideal for debugging/troubleshooting option and not for production use</li>
-<li><code>no-shared</code>: Do not create shared libraries, only static ones.</li>
-<li><code>enable-fips</code>: Build (and install) the FIPS provider</li>
-<li><code>enable-trace</code>: Build with support for the integrated tracing api.</li>
-<li><code>threads</code>: Build with support for multi-threaded applications</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Build the artifacts
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ <span class="nb">pwd</span>
-</span></span><span class="line"><span class="cl">/home/alice/downloads/openssl-3.0.8/BUILD
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ make -j<span class="k">$(</span>nproc<span class="k">)</span> 2&gt;<span class="p">&amp;</span><span class="m">1</span> <span class="p">|</span> tee /tmp/ossl3-make-output-<span class="k">$(</span>date +<span class="s2">&#34;%b-%d-%Y&#34;</span><span class="k">)</span>.log.0
-</span></span><span class="line"><span class="cl">...
-</span></span><span class="line"><span class="cl">/usr/bin/perl <span class="s2">&#34;-I.&#34;</span> -Mconfigdata <span class="s2">&#34;../util/dofile.pl&#34;</span> <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>    <span class="s2">&#34;-oMakefile&#34;</span> ../util/wrap.pl.in &gt; <span class="s2">&#34;util/wrap.pl&#34;</span>
-</span></span><span class="line"><span class="cl">chmod a+x util/wrap.pl
-</span></span><span class="line"><span class="cl">make<span class="o">[</span>1<span class="o">]</span>: Leaving directory <span class="s1">&#39;/home/alice/downloads/openssl-3.0.8/BUILD&#39;</span>
-</span></span></code></pre></div><ul>
-<li>Where,
-<ul>
-<li><code>$(nproc)</code>: The number of CPU cores/threads available</li>
-<li><code>2&gt;&amp;1</code>:
-<ul>
-<li>File descriptor 1 is the standard output (<code>stdout</code>).</li>
-<li>File descriptor 2 is the standard error (<code>stderr</code>).</li>
-<li>Redirect <code>stderr</code> to a file named stdout</li>
-<li><code>&amp;</code> indicates that what follows and precedes is a <em>file descriptor</em>, and not a filename</li>
-</ul>
-</li>
-<li><code>tee</code>: Using <code>tee</code>, you redirect stdin <strong>both</strong> to stdout <strong>and</strong> to the file specified as argument to <code>tee</code></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Verify if the installer will be installing the artifacts in required build machine path. Note that this verification does not install the artifacts. It&rsquo;s a dry-run.
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ make <span class="nv">DESTDIR</span><span class="o">=</span>/tmp -n install_fips <span class="p">|</span> grep -m1 <span class="s2">&#34;fips.so&#34;</span>
-</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;install providers/fips.so -&gt; \
-</span></span></span><span class="line"><span class="cl"><span class="s2">/tmp/home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so&#34;</span>
-</span></span></code></pre></div><ul>
-<li>As you can see, <code>DESTDIR</code> is the prefix for <code>--prefix</code> option given during configuration.</li>
-<li>The applications and libraries however are built with their <code>MODULESDIR</code> configured as <code>/home/alice/installed/openssl-3.0.8</code>. <code>DESTDIR</code> does not affect any existing artifact configurations. It is purely used for installing the artifacts on build machine.
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ <span class="nb">pwd</span>
-</span></span><span class="line"><span class="cl">/home/alice/downloads/openssl-3.0.8/BUILD
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ ./apps/openssl version -m
-</span></span><span class="line"><span class="cl">MODULESDIR: <span class="s2">&#34;/home/alice/installed/openssl-3.0.8/lib/ossl-modules&#34;</span>
-</span></span></code></pre></div></li>
-<li>NOTE: It&rsquo;s not mandatory to use <code>DESTDIR</code> if your build machine and installer machine are the same</li>
-</ul>
-</li>
-<li>Run self tests (optional)
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ <span class="nb">pwd</span>
-</span></span><span class="line"><span class="cl">/home/alice/downloads/openssl-3.0.8/BUILD
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ make <span class="nb">test</span>
-</span></span><span class="line"><span class="cl">...
-</span></span></code></pre></div></li>
-<li>Install artifacts on a given path
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ make install_sw install_fips install_ssldirs
-</span></span><span class="line"><span class="cl">...
-</span></span></code></pre></div><ul>
-<li><code>DESTDIR</code> is not required if build machine and installed machine are same (Meaning: OpenSSL binary and libraries will be used on the same machine where it&rsquo;s built)</li>
-</ul>
-</li>
-<li>Check artifacts
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ find <span class="nv">$PREFIXDIR</span> -type f <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span> <span class="se">\(</span> -name fipsmodule.cnf -o -name fips.so -o -name legacy.so <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span> -o -name openssl -o -name libcrypto.a -o -name libssl.a <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span> -o -name openssl.cnf <span class="se">\)</span>
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/bin/openssl
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/ssl/openssl.cnf
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/ssl/fipsmodule.cnf
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/lib/libssl.a
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/lib/libcrypto.a
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so
-</span></span><span class="line"><span class="cl">/home/alice/installed/openssl-3.0.8/lib/ossl-modules/legacy.so
-</span></span></code></pre></div></li>
-<li>Install FIPS provider
-<ul>
-<li>The Installation of the FIPS provider consists of two steps.
-<ol>
-<li>In the first step, the shared library of fips (<code>fips.so</code>) is copied to its installed location (The location set in <code>MODULESDIR</code> in step 6)</li>
-<li>In the second step, the <code>openssl fipsinstall</code> command is executed, which completes the installation by doing the following two things:
-<ul>
-<li>Runs the FIPS module self tests</li>
-<li>Generates the so-called FIPS module configuration file containing information about the module such as the module checksum (and for OpenSSL 3.0 the self test status).</li>
-</ul>
-</li>
-</ol>
-</li>
-</ul>
-<ul>
-<li>The FIPS module must have the self tests run, and the FIPS module config file output generated on every machine that it is to be used on.</li>
-<li>Commands
-<ol>
-<li>Make sure <code>fips.so</code> is available in <code>MODULESDIR</code> directory
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ls /home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so
-</span></span><span class="line"><span class="cl">home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so
-</span></span></code></pre></div></li>
-<li>Run the <code>openssl fipsinstall</code> command
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Contents of fipsmodule.cnf before running the command</span>
-</span></span><span class="line"><span class="cl">$ cat <span class="nv">$PREFIXDIR</span>/ssl/fipsmodule.cnf
-</span></span><span class="line"><span class="cl"><span class="o">[</span>fips_sect<span class="o">]</span>
-</span></span><span class="line"><span class="cl"><span class="nv">activate</span> <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">conditional-errors <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">security-checks <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">module-mac <span class="o">=</span> CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">$ <span class="nv">$PREFIXDIR</span>/bin/openssl fipsinstall -out <span class="nv">$PREFIXDIR</span>/ssl/fipsmodule.cnf <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>-module <span class="nv">$PREFIXDIR</span>/lib/ossl-modules/fips.so
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Contents of fipsmodule.cnf after running the command</span>
-</span></span><span class="line"><span class="cl">$ cat <span class="nv">$PREFIXDIR</span>/ssl/fipsmodule.cnf
-</span></span><span class="line"><span class="cl"><span class="o">[</span>fips_sect<span class="o">]</span>
-</span></span><span class="line"><span class="cl"><span class="nv">activate</span> <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">install-version <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">conditional-errors <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">security-checks <span class="o">=</span> <span class="m">1</span>
-</span></span><span class="line"><span class="cl">module-mac <span class="o">=</span> CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B
-</span></span><span class="line"><span class="cl">install-mac <span class="o">=</span> 41:9C:38:C2:8F:59:09:43:2C:AA:2F:58:36:2D:D9:04:F9:6C:56:8B:09:E0:18:3A:2E:D6:CC:69:05:04:E1:11
-</span></span><span class="line"><span class="cl">install-status <span class="o">=</span> INSTALL_SELF_TEST_KATS_RUN
-</span></span></code></pre></div></li>
-</ol>
-</li>
-</ul>
-</li>
-<li>Verify FIPS provider usage
-<pre tabindex="0"><code># MD5 checksum calculation without fips mode activated
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Build and Install OpenSSL 3 with FIPS module | Learn part by part</title>
+<meta name=keywords content="openssl3,fips,howto"><meta name=description content="Learn how to build and install OpenSSL 3 (with fips module) on Linux"><meta name=author content><link rel=canonical href=https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/><meta name=google-site-verification content="G-MF6MC03DXC"><link crossorigin=anonymous href=/assets/css/stylesheet.8834bbfc85f85dae1fabab19c063b95ea1edb56c60989b5fd879c5084b58f9f1.css integrity="sha256-iDS7/IX4Xa4fq6sZwGO5XqHttWxgmJtf2HnFCEtY+fE=" rel="preload stylesheet" as=style><link rel=icon href=https://partbypart.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://partbypart.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://partbypart.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://partbypart.github.io/apple-touch-icon.png><link rel=mask-icon href=https://partbypart.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><script async src="https://www.googletagmanager.com/gtag/js?id=G-MF6MC03DXC"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-MF6MC03DXC")}</script><meta property="og:title" content="Build and Install OpenSSL 3 with FIPS module"><meta property="og:description" content="Learn how to build and install OpenSSL 3 (with fips module) on Linux"><meta property="og:type" content="article"><meta property="og:url" content="https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/"><meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/OpenSSL_logo.svg/1280px-OpenSSL_logo.svg.png"><meta property="article:section" content="posts"><meta property="og:site_name" content="Part by Part"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/OpenSSL_logo.svg/1280px-OpenSSL_logo.svg.png"><meta name=twitter:title content="Build and Install OpenSSL 3 with FIPS module"><meta name=twitter:description content="Learn how to build and install OpenSSL 3 (with fips module) on Linux"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://partbypart.github.io/posts/"},{"@type":"ListItem","position":2,"name":"Build and Install OpenSSL 3 with FIPS module","item":"https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Build and Install OpenSSL 3 with FIPS module","name":"Build and Install OpenSSL 3 with FIPS module","description":"Learn how to build and install OpenSSL 3 (with fips module) on Linux","keywords":["openssl3","fips","howto"],"articleBody":"Steps Install required build tools and prerequisites Rocky Linux $ sudo groupinfo \"Development tools\" |less $ sudo yum update -y \u0026\u0026 sudo yum groupinstall -y \"Development tools\" ... $ sudo yum install -y perl ... # Install curl if not installed already $ curl --version \u003e/dev/null 2\u003e\u00261 || \\ { echo \"Curl not found. Installing Curl...\"; sudo yum install -y curl; } $ mkdir -p ~/downloads ~/installed Ubuntu $ sudo apt update \u0026\u0026 sudo apt install build-essential curl perl $ mkdir -p ~/downloads ~/installed ... Download and untar required openssl version source $ curl -L https://www.openssl.org/source/openssl-3.0.8.tar.gz | \\ tar xvz -C ~/downloads/ OpenSSL 3.0.8 is the FIPS validated version (Certificate)(Valid until: 9/21/2026) Create a build directory and check platform support $ cd ~/downloads/openssl-3.0.8 $ mkdir BUILD \u0026\u0026 cd BUILD $ uname -sm Linux aarch64 $ ../Configure LIST | grep linux-aarch linux-aarch64 Configure Makefile for build In previous versions of OpenSSL, the config script determined the platform type and compiler and then called Configure. Starting with OpenSSL 3, they are the same. Configure the Makefile $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ export PREFIXDIR=$HOME/installed/openssl-3.0.8 $ CFLAGS=\"-ggdb3 -O0\" ../Configure --api=1.1.0 no-deprecated --debug \\ --openssldir=$PREFIXDIR/ssl --prefix=$PREFIXDIR --strict-warnings \\ no-asm no-shared enable-fips enable-trace threads Configuring OpenSSL version 3.0.8 for target linux-aarch64 Using os-specific seed configuration Created configdata.pm Running configdata.pm Created Makefile.in Created Makefile Created include/openssl/configuration.h ********************************************************************** *** *** *** OpenSSL has been successfully configured *** *** *** *** If you encounter a problem while building, please open an *** *** issue on GitHub *** *** and include the output from the following command: *** *** *** *** perl configdata.pm --dump *** *** *** *** (If you are new to OpenSSL, you might want to consult the *** *** 'Troubleshooting' section in the INSTALL.md file first) *** *** *** ********************************************************************** # Verify if our config options are in use $ perl configdata.pm --dump | grep \"\\ \\|asm_arch\" CFLAGS =\u003e \"-Wall -O0 -g\", asm_arch =\u003e \"aarch64\", CFLAGS = -ggdb3 -O0 CFLAGS = -ggdb3 -O0 -DPEDANTIC -pedantic -Wno-long-long \\ -DUNUSEDRESULT_DEBUG -Wall -Wmissing-declarations -Wextra \\ -Wno-unused-parameter -Wno-missing-field-initializers -Wswitch \\ -Wsign-compare -Wshadow -Wformat \\ -Wtype-limits -Wundef -Werror -Wmissing-prototypes -Wstrict-prototypes Where, CFLAGS: Environment variable that can be set to specify additional switches to be passed to a compiler -ggdb3: Produce debugging information for use by GDB. Level 3 includes extra information, such as all the macro definitions present in the program -O0: Most optimizations are completely disabled --api=1.1.0 no-deprecated: Remove support for all APIs that were deprecated in OpenSSL version 1.1.0 or below. --debug: Build OpenSSL with debugging symbols and zero optimization level. --openssldir: Directory for OpenSSL configuration files, and also the default certificate and key store. OpenSSL binary and applications linked with OpenSSL libraries will look for openssl.cnf by default in the directory specified with --openssldir The directory should be chosen carefully to reflect the openssl.cnf path on machines where OpenSSL or applications linked with OpenSSL are installed (not where they’re built) --prefix: The top of the installation directory tree OpenSSL binary and applications linked with OpenSSL libraries will look for OpenSSL modules by default in the following directory structure: /lib/ossl-modules The directory should be chosen carefully to reflect the paths on machines where OpenSSL or applications linked with OpenSSL are installed (not where they’re built) Do not worry about having the same path prefix (as installed machine) on the build machine. Artifacts on build machine can be installed at any arbitrary path of your choice using DESTDIR option of make --strict-warnings: A developer flag that switches on various compiler options recommended for OpenSSL development. It only works when using gcc or clang as the compiler. no-asm: Do not use assembler code. Ideal for debugging/troubleshooting option and not for production use no-shared: Do not create shared libraries, only static ones. enable-fips: Build (and install) the FIPS provider enable-trace: Build with support for the integrated tracing api. threads: Build with support for multi-threaded applications Build the artifacts $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ make -j$(nproc) 2\u003e\u00261 | tee /tmp/ossl3-make-output-$(date +\"%b-%d-%Y\").log.0 ... /usr/bin/perl \"-I.\" -Mconfigdata \"../util/dofile.pl\" \\ \"-oMakefile\" ../util/wrap.pl.in \u003e \"util/wrap.pl\" chmod a+x util/wrap.pl make[1]: Leaving directory '/home/alice/downloads/openssl-3.0.8/BUILD' Where, $(nproc): The number of CPU cores/threads available 2\u003e\u00261: File descriptor 1 is the standard output (stdout). File descriptor 2 is the standard error (stderr). Redirect stderr to a file named stdout \u0026 indicates that what follows and precedes is a file descriptor, and not a filename tee: Using tee, you redirect stdin both to stdout and to the file specified as argument to tee Verify if the installer will be installing the artifacts in required build machine path. Note that this verification does not install the artifacts. It’s a dry-run. $ make DESTDIR=/tmp -n install_fips | grep -m1 \"fips.so\" echo \"install providers/fips.so -\u003e \\ /tmp/home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so\" As you can see, DESTDIR is the prefix for --prefix option given during configuration. The applications and libraries however are built with their MODULESDIR configured as /home/alice/installed/openssl-3.0.8. DESTDIR does not affect any existing artifact configurations. It is purely used for installing the artifacts on build machine. $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ ./apps/openssl version -m MODULESDIR: \"/home/alice/installed/openssl-3.0.8/lib/ossl-modules\" NOTE: It’s not mandatory to use DESTDIR if your build machine and installer machine are the same Run self tests (optional) $ pwd /home/alice/downloads/openssl-3.0.8/BUILD $ make test ... Install artifacts on a given path $ make install_sw install_fips install_ssldirs ... DESTDIR is not required if build machine and installed machine are same (Meaning: OpenSSL binary and libraries will be used on the same machine where it’s built) Check artifacts $ find $PREFIXDIR -type f \\ \\( -name fipsmodule.cnf -o -name fips.so -o -name legacy.so \\ -o -name openssl -o -name libcrypto.a -o -name libssl.a \\ -o -name openssl.cnf \\) /home/alice/installed/openssl-3.0.8/bin/openssl /home/alice/installed/openssl-3.0.8/ssl/openssl.cnf /home/alice/installed/openssl-3.0.8/ssl/fipsmodule.cnf /home/alice/installed/openssl-3.0.8/lib/libssl.a /home/alice/installed/openssl-3.0.8/lib/libcrypto.a /home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so /home/alice/installed/openssl-3.0.8/lib/ossl-modules/legacy.so Install FIPS provider The Installation of the FIPS provider consists of two steps. In the first step, the shared library of fips (fips.so) is copied to its installed location (The location set in MODULESDIR in step 6) In the second step, the openssl fipsinstall command is executed, which completes the installation by doing the following two things: Runs the FIPS module self tests Generates the so-called FIPS module configuration file containing information about the module such as the module checksum (and for OpenSSL 3.0 the self test status). The FIPS module must have the self tests run, and the FIPS module config file output generated on every machine that it is to be used on. Commands Make sure fips.so is available in MODULESDIR directory $ ls /home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so Run the openssl fipsinstall command # Contents of fipsmodule.cnf before running the command $ cat $PREFIXDIR/ssl/fipsmodule.cnf [fips_sect] activate = 1 conditional-errors = 1 security-checks = 1 module-mac = CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B $ $PREFIXDIR/bin/openssl fipsinstall -out $PREFIXDIR/ssl/fipsmodule.cnf \\ -module $PREFIXDIR/lib/ossl-modules/fips.so # Contents of fipsmodule.cnf after running the command $ cat $PREFIXDIR/ssl/fipsmodule.cnf [fips_sect] activate = 1 install-version = 1 conditional-errors = 1 security-checks = 1 module-mac = CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B install-mac = 41:9C:38:C2:8F:59:09:43:2C:AA:2F:58:36:2D:D9:04:F9:6C:56:8B:09:E0:18:3A:2E:D6:CC:69:05:04:E1:11 install-status = INSTALL_SELF_TEST_KATS_RUN Verify FIPS provider usage # MD5 checksum calculation without fips mode activated $ echo -n \"helloworld\" | $PREFIXDIR/bin/openssl md5 MD5(stdin)= fc5e038d38a57032085441e7fe7010b0 # Make a temporary copy for testing $ cp $PREFIXDIR/ssl/openssl.cnf /tmp/openssl.cnf # Enable fips section by uncommenting \"fips = fips_sect\" $ sed -i 's/^# fips =/fips =/' /tmp/openssl.cnf $ grep \"fips = \" /tmp/openssl.cnf fips = fips_sect # Uncomment and include \"fipsmodule.cnf\" in openssl.cnf $ sed -i 's/^# .include fipsmodule.cnf/.include fipsmodule.cnf/' /tmp/openssl.cnf # Attempting to run md5 with fips module enabled should throw an error $ echo -n \"helloworld\" | \\ OPENSSL_CONF_INCLUDE=$PREFIXDIR/ssl/ \\ OPENSSL_CONF=/tmp/openssl.cnf $PREFIXDIR/bin/openssl md5 Error setting digest A03EA49FFFFF0000:error:0308010C:digital envelope routines:inner_evp_generic_fetch:unsupported:../crypto/evp/evp_fetch.c:373:Global default library context, Algorithm (MD5 : 102), Properties () A03EA49FFFFF0000:error:03000086:digital envelope routines:evp_md_init_internal:initialization error:../crypto/evp/digest.c:254: Where, OPENSSL_CONF_INCLUDE: Directory path to be prefixed for .include directives in openssl.cnf OPENSSL_CONF: Custom openssl.cnf to be used for the given command References OpenSSL download source OpenSSL Install options and instructions OpenSSL Build and Install documentation OpenSSL 3.0.8 Certificate gcc debugging options OpenSSL Makefile targets OpenSSL configuration options FIPS provider installation OpenSSL environment variables ","wordCount":"1308","inLanguage":"en","image":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/OpenSSL_logo.svg/1280px-OpenSSL_logo.svg.png","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/"},"publisher":{"@type":"Organization","name":"Learn part by part","logo":{"@type":"ImageObject","url":"https://partbypart.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://partbypart.github.io/ accesskey=h title="PartByPart (Alt + H)"><img src=https://partbypart.github.io/apple-touch-icon.png alt aria-label=logo height=35>PartByPart</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)"><svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://partbypart.github.io/categories/ title=CATEGORIES><span>CATEGORIES</span></a></li><li><a href=https://partbypart.github.io/tags/ title=TAGS><span>TAGS</span></a></li><li><a href=https://partbypart.github.io/archives/ title=ARCHIVES><span>ARCHIVES</span></a></li><li><a href=https://partbypart.github.io/search/ title="SEARCH (Alt + /)" accesskey=/><span>SEARCH</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><div class=breadcrumbs><a href=https://partbypart.github.io/>Home</a>&nbsp;»&nbsp;<a href=https://partbypart.github.io/posts/>Posts</a></div><h1 class="post-title entry-hint-parent">Build and Install OpenSSL 3 with FIPS module</h1><div class=post-description>Learn how to build and install OpenSSL 3 (with fips module) on Linux</div><div class=post-meta>7 min</div></header><div class=post-content><h3 id=steps>Steps<a hidden class=anchor aria-hidden=true href=#steps>#</a></h3><ol><li>Install required build tools and <a href=https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#prerequisites>prerequisites</a><ul><li>Rocky Linux<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo groupinfo <span class=s2>&#34;Development tools&#34;</span> <span class=p>|</span>less
+</span></span><span class=line><span class=cl>$ sudo yum update -y <span class=o>&amp;&amp;</span> sudo yum groupinstall -y <span class=s2>&#34;Development tools&#34;</span>
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>$ sudo yum install -y perl
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl><span class=c1># Install curl if not installed already</span>
+</span></span><span class=line><span class=cl>$ curl --version &gt;/dev/null 2&gt;<span class=p>&amp;</span><span class=m>1</span> <span class=o>||</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span><span class=o>{</span> <span class=nb>echo</span> <span class=s2>&#34;Curl not found. Installing Curl...&#34;</span><span class=p>;</span> sudo yum install -y curl<span class=p>;</span> <span class=o>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ mkdir -p ~/downloads ~/installed
+</span></span></code></pre></div></li><li>Ubuntu<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ sudo apt update <span class=o>&amp;&amp;</span> sudo apt install build-essential curl perl
+</span></span><span class=line><span class=cl>$ mkdir -p ~/downloads ~/installed
+</span></span><span class=line><span class=cl>...
+</span></span></code></pre></div></li></ul></li><li>Download and untar required openssl version source<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ curl -L https://www.openssl.org/source/openssl-3.0.8.tar.gz <span class=p>|</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>tar xvz -C ~/downloads/
+</span></span></code></pre></div><ul><li>OpenSSL 3.0.8 is the FIPS validated version (<a href=https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4282>Certificate</a>)(Valid until: 9/21/2026)</li></ul></li><li>Create a build directory and check platform support<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ <span class=nb>cd</span> ~/downloads/openssl-3.0.8
+</span></span><span class=line><span class=cl>$ mkdir BUILD <span class=o>&amp;&amp;</span> <span class=nb>cd</span> BUILD
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ uname -sm
+</span></span><span class=line><span class=cl>Linux aarch64
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ ../Configure LIST <span class=p>|</span> grep linux-aarch
+</span></span><span class=line><span class=cl>linux-aarch64
+</span></span></code></pre></div></li><li>Configure <code>Makefile</code> for build<ul><li>In previous versions of OpenSSL, the <code>config</code> script determined the platform type and compiler and then called <code>Configure</code>. Starting with OpenSSL 3, they are the same.</li><li>Configure the <code>Makefile</code><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ <span class=nb>pwd</span>
+</span></span><span class=line><span class=cl>/home/alice/downloads/openssl-3.0.8/BUILD
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ <span class=nb>export</span> <span class=nv>PREFIXDIR</span><span class=o>=</span><span class=nv>$HOME</span>/installed/openssl-3.0.8
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ <span class=nv>CFLAGS</span><span class=o>=</span><span class=s2>&#34;-ggdb3 -O0&#34;</span> ../Configure --api<span class=o>=</span>1.1.0 no-deprecated --debug <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>--openssldir<span class=o>=</span><span class=nv>$PREFIXDIR</span>/ssl --prefix<span class=o>=</span><span class=nv>$PREFIXDIR</span> --strict-warnings <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>no-asm no-shared enable-fips enable-trace threads
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>Configuring OpenSSL version 3.0.8 <span class=k>for</span> target linux-aarch64
+</span></span><span class=line><span class=cl>Using os-specific seed configuration
+</span></span><span class=line><span class=cl>Created configdata.pm
+</span></span><span class=line><span class=cl>Running configdata.pm
+</span></span><span class=line><span class=cl>Created Makefile.in
+</span></span><span class=line><span class=cl>Created Makefile
+</span></span><span class=line><span class=cl>Created include/openssl/configuration.h
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>**********************************************************************
+</span></span><span class=line><span class=cl>***                                                                ***
+</span></span><span class=line><span class=cl>***   OpenSSL has been successfully configured                     ***
+</span></span><span class=line><span class=cl>***                                                                ***
+</span></span><span class=line><span class=cl>***   If you encounter a problem <span class=k>while</span> building, please open an    ***
+</span></span><span class=line><span class=cl>***   issue on GitHub &lt;https://github.com/openssl/openssl/issues&gt;  ***
+</span></span><span class=line><span class=cl>***   and include the output from the following command:           ***
+</span></span><span class=line><span class=cl>***                                                                ***
+</span></span><span class=line><span class=cl>***       perl configdata.pm --dump                                ***
+</span></span><span class=line><span class=cl>***                                                                ***
+</span></span><span class=line><span class=cl>***   <span class=o>(</span>If you are new to OpenSSL, you might want to consult the    ***
+</span></span><span class=line><span class=cl>***   <span class=s1>&#39;Troubleshooting&#39;</span> section in the INSTALL.md file first<span class=o>)</span>      ***
+</span></span><span class=line><span class=cl>***                                                                ***
+</span></span><span class=line><span class=cl>**********************************************************************
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Verify if our config options are in use</span>
+</span></span><span class=line><span class=cl>$ perl configdata.pm --dump <span class=p>|</span> grep <span class=s2>&#34;\&lt;CFLAGS\&gt; \|asm_arch&#34;</span>
+</span></span><span class=line><span class=cl><span class=nv>CFLAGS</span> <span class=o>=</span>&gt; <span class=s2>&#34;-Wall -O0 -g&#34;</span>,
+</span></span><span class=line><span class=cl><span class=nv>asm_arch</span> <span class=o>=</span>&gt; <span class=s2>&#34;aarch64&#34;</span>,
+</span></span><span class=line><span class=cl><span class=nv>CFLAGS</span> <span class=o>=</span> -ggdb3 -O0
+</span></span><span class=line><span class=cl><span class=nv>CFLAGS</span>          <span class=o>=</span> -ggdb3 -O0 -DPEDANTIC -pedantic -Wno-long-long <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>-DUNUSEDRESULT_DEBUG -Wall -Wmissing-declarations -Wextra <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>-Wno-unused-parameter -Wno-missing-field-initializers -Wswitch <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>-Wsign-compare -Wshadow -Wformat <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>-Wtype-limits -Wundef -Werror -Wmissing-prototypes -Wstrict-prototypes
+</span></span></code></pre></div></li><li>Where,<ul><li><code>CFLAGS</code>: Environment variable that can be set to specify additional switches to be passed to a compiler<ul><li><code>-ggdb3</code>: Produce debugging information for use by GDB. Level 3 includes extra information, such as all the macro definitions present in the program</li><li><code>-O0</code>: Most optimizations are completely disabled</li></ul></li><li><code>--api=1.1.0 no-deprecated</code>: Remove support for all APIs that were deprecated in OpenSSL version 1.1.0 or below.</li><li><code>--debug</code>: Build OpenSSL with debugging symbols and zero optimization level.</li><li><code>--openssldir</code>: Directory for OpenSSL configuration files, and also the default certificate and key store.<ul><li>OpenSSL binary and applications linked with OpenSSL libraries will look for <code>openssl.cnf</code> by default in the directory specified with <code>--openssldir</code></li><li>The directory should be chosen carefully to reflect the <code>openssl.cnf</code> path on machines where OpenSSL or applications linked with OpenSSL are installed (not where they&rsquo;re built)</li></ul></li><li><code>--prefix</code>: The top of the installation directory tree<ul><li>OpenSSL binary and applications linked with OpenSSL libraries will look for OpenSSL modules by default in the following directory structure: <code>&lt;prefix_directory>/lib/ossl-modules</code></li><li>The directory should be chosen carefully to reflect the paths on machines where OpenSSL or applications linked with OpenSSL are installed (not where they&rsquo;re built)</li><li>Do not worry about having the same path prefix (as installed machine) on the build machine. Artifacts on build machine can be installed at any arbitrary path of your choice using <code>DESTDIR</code> option of <code>make</code></li></ul></li><li><code>--strict-warnings</code>: A developer flag that switches on various compiler options recommended for OpenSSL development. It only works when using gcc or clang as the compiler.</li><li><code>no-asm</code>: Do not use assembler code. Ideal for debugging/troubleshooting option and not for production use</li><li><code>no-shared</code>: Do not create shared libraries, only static ones.</li><li><code>enable-fips</code>: Build (and install) the FIPS provider</li><li><code>enable-trace</code>: Build with support for the integrated tracing api.</li><li><code>threads</code>: Build with support for multi-threaded applications</li></ul></li></ul></li><li>Build the artifacts<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ <span class=nb>pwd</span>
+</span></span><span class=line><span class=cl>/home/alice/downloads/openssl-3.0.8/BUILD
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ make -j<span class=k>$(</span>nproc<span class=k>)</span> 2&gt;<span class=p>&amp;</span><span class=m>1</span> <span class=p>|</span> tee /tmp/ossl3-make-output-<span class=k>$(</span>date +<span class=s2>&#34;%b-%d-%Y&#34;</span><span class=k>)</span>.log.0
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>/usr/bin/perl <span class=s2>&#34;-I.&#34;</span> -Mconfigdata <span class=s2>&#34;../util/dofile.pl&#34;</span> <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    <span class=s2>&#34;-oMakefile&#34;</span> ../util/wrap.pl.in &gt; <span class=s2>&#34;util/wrap.pl&#34;</span>
+</span></span><span class=line><span class=cl>chmod a+x util/wrap.pl
+</span></span><span class=line><span class=cl>make<span class=o>[</span>1<span class=o>]</span>: Leaving directory <span class=s1>&#39;/home/alice/downloads/openssl-3.0.8/BUILD&#39;</span>
+</span></span></code></pre></div><ul><li>Where,<ul><li><code>$(nproc)</code>: The number of CPU cores/threads available</li><li><code>2>&amp;1</code>:<ul><li>File descriptor 1 is the standard output (<code>stdout</code>).</li><li>File descriptor 2 is the standard error (<code>stderr</code>).</li><li>Redirect <code>stderr</code> to a file named stdout</li><li><code>&</code> indicates that what follows and precedes is a <em>file descriptor</em>, and not a filename</li></ul></li><li><code>tee</code>: Using <code>tee</code>, you redirect stdin <strong>both</strong> to stdout <strong>and</strong> to the file specified as argument to <code>tee</code></li></ul></li></ul></li><li>Verify if the installer will be installing the artifacts in required build machine path. Note that this verification does not install the artifacts. It&rsquo;s a dry-run.<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ make <span class=nv>DESTDIR</span><span class=o>=</span>/tmp -n install_fips <span class=p>|</span> grep -m1 <span class=s2>&#34;fips.so&#34;</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;install providers/fips.so -&gt; \
+</span></span></span><span class=line><span class=cl><span class=s2>/tmp/home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so&#34;</span>
+</span></span></code></pre></div><ul><li>As you can see, <code>DESTDIR</code> is the prefix for <code>--prefix</code> option given during configuration.</li><li>The applications and libraries however are built with their <code>MODULESDIR</code> configured as <code>/home/alice/installed/openssl-3.0.8</code>. <code>DESTDIR</code> does not affect any existing artifact configurations. It is purely used for installing the artifacts on build machine.<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ <span class=nb>pwd</span>
+</span></span><span class=line><span class=cl>/home/alice/downloads/openssl-3.0.8/BUILD
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ ./apps/openssl version -m
+</span></span><span class=line><span class=cl>MODULESDIR: <span class=s2>&#34;/home/alice/installed/openssl-3.0.8/lib/ossl-modules&#34;</span>
+</span></span></code></pre></div></li><li>NOTE: It&rsquo;s not mandatory to use <code>DESTDIR</code> if your build machine and installer machine are the same</li></ul></li><li>Run self tests (optional)<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ <span class=nb>pwd</span>
+</span></span><span class=line><span class=cl>/home/alice/downloads/openssl-3.0.8/BUILD
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ make <span class=nb>test</span>
+</span></span><span class=line><span class=cl>...
+</span></span></code></pre></div></li><li>Install artifacts on a given path<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ make install_sw install_fips install_ssldirs
+</span></span><span class=line><span class=cl>...
+</span></span></code></pre></div><ul><li><code>DESTDIR</code> is not required if build machine and installed machine are same (Meaning: OpenSSL binary and libraries will be used on the same machine where it&rsquo;s built)</li></ul></li><li>Check artifacts<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ find <span class=nv>$PREFIXDIR</span> -type f <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span> <span class=se>\(</span> -name fipsmodule.cnf -o -name fips.so -o -name legacy.so <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span> -o -name openssl -o -name libcrypto.a -o -name libssl.a <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span> -o -name openssl.cnf <span class=se>\)</span>
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/bin/openssl
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/ssl/openssl.cnf
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/ssl/fipsmodule.cnf
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/lib/libssl.a
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/lib/libcrypto.a
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so
+</span></span><span class=line><span class=cl>/home/alice/installed/openssl-3.0.8/lib/ossl-modules/legacy.so
+</span></span></code></pre></div></li><li>Install FIPS provider<ul><li>The Installation of the FIPS provider consists of two steps.<ol><li>In the first step, the shared library of fips (<code>fips.so</code>) is copied to its installed location (The location set in <code>MODULESDIR</code> in step 6)</li><li>In the second step, the <code>openssl fipsinstall</code> command is executed, which completes the installation by doing the following two things:<ul><li>Runs the FIPS module self tests</li><li>Generates the so-called FIPS module configuration file containing information about the module such as the module checksum (and for OpenSSL 3.0 the self test status).</li></ul></li></ol></li></ul><ul><li>The FIPS module must have the self tests run, and the FIPS module config file output generated on every machine that it is to be used on.</li><li>Commands<ol><li>Make sure <code>fips.so</code> is available in <code>MODULESDIR</code> directory<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl>$ ls /home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so
+</span></span><span class=line><span class=cl>home/alice/installed/openssl-3.0.8/lib/ossl-modules/fips.so
+</span></span></code></pre></div></li><li>Run the <code>openssl fipsinstall</code> command<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Contents of fipsmodule.cnf before running the command</span>
+</span></span><span class=line><span class=cl>$ cat <span class=nv>$PREFIXDIR</span>/ssl/fipsmodule.cnf
+</span></span><span class=line><span class=cl><span class=o>[</span>fips_sect<span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=nv>activate</span> <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>conditional-errors <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>security-checks <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>module-mac <span class=o>=</span> CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>$ <span class=nv>$PREFIXDIR</span>/bin/openssl fipsinstall -out <span class=nv>$PREFIXDIR</span>/ssl/fipsmodule.cnf <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>-module <span class=nv>$PREFIXDIR</span>/lib/ossl-modules/fips.so
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Contents of fipsmodule.cnf after running the command</span>
+</span></span><span class=line><span class=cl>$ cat <span class=nv>$PREFIXDIR</span>/ssl/fipsmodule.cnf
+</span></span><span class=line><span class=cl><span class=o>[</span>fips_sect<span class=o>]</span>
+</span></span><span class=line><span class=cl><span class=nv>activate</span> <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>install-version <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>conditional-errors <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>security-checks <span class=o>=</span> <span class=m>1</span>
+</span></span><span class=line><span class=cl>module-mac <span class=o>=</span> CD:74:E1:72:68:F9:3F:E2:CA:71:CE:E4:4E:89:33:81:F8:0D:05:E9:9E:41:D5:40:DA:92:01:B9:4F:A9:69:6B
+</span></span><span class=line><span class=cl>install-mac <span class=o>=</span> 41:9C:38:C2:8F:59:09:43:2C:AA:2F:58:36:2D:D9:04:F9:6C:56:8B:09:E0:18:3A:2E:D6:CC:69:05:04:E1:11
+</span></span><span class=line><span class=cl>install-status <span class=o>=</span> INSTALL_SELF_TEST_KATS_RUN
+</span></span></code></pre></div></li></ol></li></ul></li><li>Verify FIPS provider usage<pre tabindex=0><code># MD5 checksum calculation without fips mode activated
 $ echo -n &#34;helloworld&#34; | $PREFIXDIR/bin/openssl md5
 MD5(stdin)= fc5e038d38a57032085441e7fe7010b0
 
@@ -485,234 +146,8 @@ OPENSSL_CONF=/tmp/openssl.cnf $PREFIXDIR/bin/openssl md5
 Error setting digest
 A03EA49FFFFF0000:error:0308010C:digital envelope routines:inner_evp_generic_fetch:unsupported:../crypto/evp/evp_fetch.c:373:Global default library context, Algorithm (MD5 : 102), Properties ()
 A03EA49FFFFF0000:error:03000086:digital envelope routines:evp_md_init_internal:initialization error:../crypto/evp/digest.c:254:
-</code></pre><ul>
-<li>Where,
-<ul>
-<li><code>OPENSSL_CONF_INCLUDE</code>: Directory path to be prefixed for <code>.include</code> directives in <code>openssl.cnf</code></li>
-<li><code>OPENSSL_CONF</code>: Custom <code>openssl.cnf</code> to be used for the given command</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
-<ul>
-<li><a href="https://www.openssl.org/source/">OpenSSL download source</a></li>
-<li><a href="https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md">OpenSSL Install options and instructions</a></li>
-<li><a href="https://github.com/openssl/openssl/blob/openssl-3.0/NOTES-UNIX.md">OpenSSL Build and Install documentation</a></li>
-<li><a href="https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4282">OpenSSL 3.0.8 Certificate</a></li>
-<li><a href="https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html">gcc debugging options</a></li>
-<li><a href="https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#makefile-targets">OpenSSL Makefile targets</a></li>
-<li><a href="https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#configuration-options">OpenSSL configuration options</a></li>
-<li><a href="https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#configuration-options">FIPS provider installation</a></li>
-<li><a href="https://www.openssl.org/docs/manmaster/man7/openssl-env.html">OpenSSL environment variables</a></li>
-</ul>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://partbypart.github.io/tags/openssl3/">Openssl3</a></li>
-      <li><a href="https://partbypart.github.io/tags/fips/">Fips</a></li>
-      <li><a href="https://partbypart.github.io/tags/howto/">Howto</a></li>
-    </ul>
-<nav class="paginav">
-  <a class="next" href="https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/">
-    <span class="title">Next »</span>
-    <br>
-    <span>Deep dive - Anatomy of a PKCS#1 RSA private key</span>
-  </a>
-</nav>
-
-
-<ul class="share-buttons">
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on x"
-            href="https://x.com/intent/tweet/?text=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f&amp;hashtags=openssl3%2cfips%2chowto">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on linkedin"
-            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f&amp;title=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;summary=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;source=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on reddit"
-            href="https://reddit.com/submit?url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f&title=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on facebook"
-            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on whatsapp"
-            href="https://api.whatsapp.com/send?text=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module%20-%20https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on telegram"
-            href="https://telegram.me/share/url?text=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f">
-            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on ycombinator"
-            href="https://news.ycombinator.com/submitlink?t=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&u=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f">
-            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
-                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
-                <path
-                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
-            </svg>
-        </a>
-    </li>
-</ul>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-    <span>&copy; 2024 <a href="https://partbypart.github.io/">Learn part by part</a></span>
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a><br/>
-        <a href="https://www.flaticon.com/free-icons/timber" title="timber icons">Timber icons created by imaginationlol - Flaticon</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
-
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-</body>
-
-</html>
+</code></pre><ul><li>Where,<ul><li><code>OPENSSL_CONF_INCLUDE</code>: Directory path to be prefixed for <code>.include</code> directives in <code>openssl.cnf</code></li><li><code>OPENSSL_CONF</code>: Custom <code>openssl.cnf</code> to be used for the given command</li></ul></li></ul></li></ol><h3 id=references>References<a hidden class=anchor aria-hidden=true href=#references>#</a></h3><ul><li><a href=https://www.openssl.org/source/>OpenSSL download source</a></li><li><a href=https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md>OpenSSL Install options and instructions</a></li><li><a href=https://github.com/openssl/openssl/blob/openssl-3.0/NOTES-UNIX.md>OpenSSL Build and Install documentation</a></li><li><a href=https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4282>OpenSSL 3.0.8 Certificate</a></li><li><a href=https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html>gcc debugging options</a></li><li><a href=https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#makefile-targets>OpenSSL Makefile targets</a></li><li><a href=https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#configuration-options>OpenSSL configuration options</a></li><li><a href=https://github.com/openssl/openssl/blob/openssl-3.0/INSTALL.md#configuration-options>FIPS provider installation</a></li><li><a href=https://www.openssl.org/docs/manmaster/man7/openssl-env.html>OpenSSL environment variables</a></li></ul></div><footer class=post-footer><ul class=post-tags><li><a href=https://partbypart.github.io/tags/openssl3/>Openssl3</a></li><li><a href=https://partbypart.github.io/tags/fips/>Fips</a></li><li><a href=https://partbypart.github.io/tags/howto/>Howto</a></li></ul><nav class=paginav><a class=next href=https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/><span class=title>Next »</span><br><span>Deep dive - Anatomy of a PKCS#1 RSA private key</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on x" href="https://x.com/intent/tweet/?text=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f&amp;hashtags=openssl3%2cfips%2chowto"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f&amp;title=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;summary=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;source=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f&title=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on whatsapp" href="https://api.whatsapp.com/send?text=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module%20-%20https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentcolor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on telegram" href="https://telegram.me/share/url?text=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentcolor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share Build and Install OpenSSL 3 with FIPS module on ycombinator" href="https://news.ycombinator.com/submitlink?t=Build%20and%20Install%20OpenSSL%203%20with%20FIPS%20module&u=https%3a%2f%2fpartbypart.github.io%2fposts%2fbuild-and-install-openssl3-with-fips%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentcolor" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2024 <a href=https://partbypart.github.io/>Learn part by part</a></span>
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a><br><a href=https://www.flaticon.com/free-icons/timber title="timber icons">Timber icons created by imaginationlol - Flaticon</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
