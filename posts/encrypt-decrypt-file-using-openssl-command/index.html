@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Encrypt/Decrypt a file using openssl command | Learn part by part</title>
+<meta name="keywords" content="openssl, encryption-decryption, symmetric-key, asymmetric-key">
+<meta name="description" content="Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key">
+<meta name="author" content="">
+<link rel="canonical" href="https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/">
+<meta name="google-site-verification" content="G-MF6MC03DXC">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8834bbfc85f85dae1fabab19c063b95ea1edb56c60989b5fd879c5084b58f9f1.css" integrity="sha256-iDS7/IX4Xa4fq6sZwGO5XqHttWxgmJtf2HnFCEtY&#43;fE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://partbypart.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://partbypart.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://partbypart.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://partbypart.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://partbypart.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-MF6MC03DXC"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-MF6MC03DXC');
+        }
+      </script>
+    
+  
+
+<meta property="og:title" content="Encrypt/Decrypt a file using openssl command" />
+<meta property="og:description" content="Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/" />
+<meta property="og:image" content="https://partbypart.github.io/%3Cimage%20path/url%3E" /><meta property="article:section" content="posts" />
+
+<meta property="og:site_name" content="Part by Part" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://partbypart.github.io/%3Cimage%20path/url%3E" />
+<meta name="twitter:title" content="Encrypt/Decrypt a file using openssl command"/>
+<meta name="twitter:description" content="Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://partbypart.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Encrypt/Decrypt a file using openssl command",
+      "item": "https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Encrypt/Decrypt a file using openssl command",
+  "name": "Encrypt\/Decrypt a file using openssl command",
+  "description": "Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key",
+  "keywords": [
+    "openssl", "encryption-decryption", "symmetric-key", "asymmetric-key"
+  ],
+  "articleBody": "Prerequisites openssl command line tool (version 3.x.x) A large file Linux/MacOS Part 1 - Encrypt/Decrypt a large file using a symmetric key derived from a password Encryption Encrypt a large (1GB) file using a password $ ~/bin/openssl@3.0.8 version -v OpenSSL 3.0.8 7 Feb 2023 (Library: OpenSSL 3.0.8 7 Feb 2023) $ ls -lhgG 1GB-file -rw-rw-r-- 1 1.0G Aug 23 05:57 1GB-file $ ~/bin/openssl@3.0.8 enc -aes-256-cbc -pbkdf2 -salt -md sha512 -in 1GB-file \\ -out 1GB-file.enc -pass pass:secretpassword $ ls -lhgG 1GB-file* -rw-rw-r-- 1 1.0G Aug 23 05:57 1GB-file -rw-rw-r-- 1 1.1G Aug 23 06:18 1GB-file.enc Where, enc: Encryption command. -aes-256-cbc: 256 bit AES (Advanced Encryption Standard) in CBC (Cipher block chaining) mode. -pbkdf2: Use PBKDF2 (Password Based Key Derivation Function) algorithm to derive a key from password. -salt: Use salt (randomly generated) when encrypting. (This is default) -md : Use the specified digest to create the key from the passphrase. The default algorithm is sha-256. -in : The input filename, standard input by default. (File to encrypt) -out : The output filename, standard output by default. (Encrypted file) -pass pass:: Password used to derive a symmetric key. Decryption Decrypt an encrypted file using encryption password. $ ~/bin/openssl@3.0.8 enc -d -aes-256-cbc -pbkdf2 -md sha512 -in 1GB-file.enc \\ -out 1GB-file.dec -pass pass:secretpassword # Verify if the file was decrypted correctly by comparing the checksums $ sha256sum 1GB-file 1GB-file.dec e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3 1GB-file e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3 1GB-file.dec Where, enc: Encryption command. -d: Decrypt the input data. -aes-256-cbc: 256 bit AES in CBC mode. -pbkdf2: Use PBKDF2 algorithm to derive symmetric key using password. -md : Use the specified digest to create the key from the passphrase. The default algorithm is sha-256. (NOTE: This option has to be specified during decryption if a non-default digest was used during encryption) -in : The input filename, standard input by default. (Encrypted file) -out : The output filename, standard output by default. (Decrypted file) -pass pass:: Password used to derive a symmetric key. Part 2 - Encrypt/Decrypt a large file using an asymmetric key pair Encrypting a large file using asymmetric (public-key) cryptography, is not the most efficient approach due to the limitations of asymmetric algorithms. Asymmetric encryption algorithms like RSA are computationally expensive, especially for large files. The encryption and decryption processes involve complex mathematical operations, making them slow and resource-intensive. Asymmetric encryption algorithms tend to produce ciphertext that is significantly larger than the original plaintext. This can lead to substantial increases in storage requirements and data transfer times. Asymmetric encryption keys need to be larger to provide the same level of security as symmetric encryption keys. Symmetric encryption is much faster and efficient for handling large data. In practice, a common approach is to use a hybrid encryption scheme: Generate a random symmetric encryption key and use a symmetric encryption algorithm (e.g., AES) to encrypt the large file. Encrypt the symmetric key using the recipient’s asymmetric (public) key. This step ensures that only the intended recipient with corresponding private key can decrypt the symmetric key. Send both the encrypted file (using symmetric encryption) and the encrypted symmetric key to the recipient. The recipient uses their private key to decrypt the symmetric key, and then uses the symmetric key to decrypt the actual file. This approach leverages the strengths of both asymmetric and symmetric encryption, resulting in both security and efficiency. Encryption using OpenSSL 3.0.8 Create random 32 (or any number) bytes of keying material using openssl. NOTE: These 32 bytes are not used as symmetric key.\n$ openssl rand 32 \u003e keymaterial.bin $ xxd keymaterial.bin 00000000: f178 237d 5fbf 400e 0c7a 3c90 c0c2 6a22 .x#}_.@..z\u003c...j\" 00000010: d69a 182d ff57 97cd dfd6 2081 51c1 976d ...-.W.... .Q..m Where,\nrand: Generate random bytes. : Required number of random bytes. Encrypt a large file using a 256 bit key derived from a random salt and keymaterial.bin\n$ ~/bin/openssl@3.0.8 enc -a -aes-256-cbc -in 1GB-file -out 1GB-file.enc \\ -pbkdf2 -salt -pass file:keymaterial.bin $ ls -lhgG 1GB-file* -rw-rw-r-- 1 1.0G Aug 23 05:57 1GB-file -rw-rw-r-- 1 1.4G Aug 23 06:48 1GB-file.enc Where,\nenc: Encryption command. -a: Base64 process the data. This means that if encryption is taking place the data is base64 encoded after encryption. -aes-256-cbc: 256 bit AES in CBC mode. -in : The input filename, standard input by default. (File to encrypt) -out : The output filename, standard output by default. (Encrypted file) -pbkdf2: Use PBKDF2 algorithm with a default iteration count of 10000 unless otherwise specified by the -iter command line option. -salt: Use salt (randomly generated) when encrypting. (This is default) -pass file:: Bytes used to derive a 256 bit symmetric key. Encrypt the keymaterial.bin using receiver’s public key.\n$ openssl pkeyutl -encrypt -inkey id_rsa_2048.pub.pem -pubin -in keymaterial.bin \\ -out keymaterial.bin.enc # base64 encode the encrypted keymaterial for easy transmission $ openssl base64 -in keymaterial.bin.enc -out keymaterial.bin.enc.b64 Where,\npkeyutl: command used to perform low-level public key operations -encrypt: Encrypt the input data using a public key. -inkey : The input key used for encryption. (NOTE: Use receiver’s public key) -pubin: The input file is a public key. -in : Input filename to read data from. -out : Output filename to write to. Send 1GB-file.enc and keymaterial.bin.enc.b64 to the receiver.\nDecryption using OpenSSL 3.0.8 Decode the encrypted key material $ openssl base64 -d -in keymaterial.bin.enc.b64 \\ -out keymaterial.bin.enc.decoded $ sha256sum keymaterial.bin.enc keymaterial.bin.enc.decoded 5c385055b8cfaec09c9c8d2f79e3f9cdfcf33a80f06d2a21592ac8652e228b61 keymaterial.bin.enc 5c385055b8cfaec09c9c8d2f79e3f9cdfcf33a80f06d2a21592ac8652e228b61 keymaterial.bin.enc.decoded Decrypt the keymaterial.bin.enc using receiver’s private key $ openssl pkeyutl -decrypt -inkey id_rsa_2048.pem \\ -in keymaterial.bin.enc.decoded -out keymaterial.bin.dec $ sha256sum keymaterial.bin keymaterial.bin.dec 0373f9536fa1a1e25527711bc53bccc1ce49970e1311c0602aa78b5115f5b251 keymaterial.bin 0373f9536fa1a1e25527711bc53bccc1ce49970e1311c0602aa78b5115f5b251 keymaterial.bin.dec Where, pkeyutl: command used to perform low-level public key operations -decrypt: Decrypt the input data using a private key. -inkey : The input key used for decryption. (NOTE: Use receiver’s private key) -in : Input filename to read data from. -out : Output filename to write to. Decrypt the encrypted file by deriving the decryption key using keymaterial.bin $ ~/bin/openssl@3.0.8 enc -a -d -aes-256-cbc -in 1GB-file.enc \\ -out 1GB-file.dec -pbkdf2 -pass file:keymaterial.bin.dec # Verify if the file was decrypted correctly by comparing the checksums $ sha256sum 1GB-file 1GB-file.dec e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3 1GB-file e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3 1GB-file.dec Where, enc: Encryption command -a: Base64 process the data. If decryption is set then the input data is base64 decoded before being decrypted. -d: Decrypt the input data. -aes-256-cbc: 256 bit AES in CBC mode -in : The input filename, standard input by default. (Encrypted file) -out : The output filename, standard output by default. (Decrypted file) -pbkdf2: Use PBKDF2 algorithm with a default iteration count of 10000 unless otherwise specified by the -iter command line option. -pass file:: Bytes used to derive a 256 bit symmetric key. That’s it. Without exchanging the symmetric key on wire or any means, sender and receiver were able to securely share a file using asymmetric cryptography. References OpenSSL 3 - openssl-enc OpenSSL 3 - openssl-rand OpenSSL 3 - openssl-pkutl ",
+  "wordCount" : "1131",
+  "inLanguage": "en",
+  "image":"https://partbypart.github.io/%3Cimage%20path/url%3E","datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Learn part by part",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://partbypart.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://partbypart.github.io/" accesskey="h" title="PartByPart (Alt + H)">
+                <img src="https://partbypart.github.io/apple-touch-icon.png" alt="" aria-label="logo"
+                    height="35">PartByPart</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://partbypart.github.io/categories/" title="CATEGORIES">
+                    <span>CATEGORIES</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://partbypart.github.io/tags/" title="TAGS">
+                    <span>TAGS</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://partbypart.github.io/archives/" title="ARCHIVES">
+                    <span>ARCHIVES</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://partbypart.github.io/search/" title="SEARCH (Alt &#43; /)" accesskey=/>
+                    <span>SEARCH</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://partbypart.github.io/">Home</a>&nbsp;»&nbsp;<a href="https://partbypart.github.io/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Encrypt/Decrypt a file using openssl command
+    </h1>
+    <div class="post-description">
+      Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key
+    </div>
+    <div class="post-meta">6 min&nbsp;·&nbsp;1131 words
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#prerequisites" aria-label="Prerequisites">Prerequisites</a></li>
+                <li>
+                    <a href="#part-1---encryptdecrypt-a-large-file-using-a-symmetric-key-derived-from-a-password" aria-label="Part 1 - Encrypt/Decrypt a large file using a symmetric key derived from a password">Part 1 - Encrypt/Decrypt a large file using a symmetric key derived from a password</a><ul>
+                        
+                <li>
+                    <a href="#encryption" aria-label="Encryption">Encryption</a></li>
+                <li>
+                    <a href="#decryption" aria-label="Decryption">Decryption</a></li></ul>
+                </li>
+                <li>
+                    <a href="#part-2---encryptdecrypt-a-large-file-using-an-asymmetric-key-pair" aria-label="Part 2 - Encrypt/Decrypt a large file using an asymmetric key pair">Part 2 - Encrypt/Decrypt a large file using an asymmetric key pair</a><ul>
+                        
+                <li>
+                    <a href="#encryption-using-openssl-308" aria-label="Encryption using OpenSSL 3.0.8">Encryption using OpenSSL 3.0.8</a></li>
+                <li>
+                    <a href="#decryption-using-openssl-308" aria-label="Decryption using OpenSSL 3.0.8">Decryption using OpenSSL 3.0.8</a></li></ul>
+                </li>
+                <li>
+                    <a href="#references" aria-label="References">References</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h3 id="prerequisites">Prerequisites<a hidden class="anchor" aria-hidden="true" href="#prerequisites">#</a></h3>
+<ul>
+<li><code>openssl</code> command line tool (version 3.x.x)</li>
+<li>A large file</li>
+<li>Linux/MacOS</li>
+</ul>
+<h3 id="part-1---encryptdecrypt-a-large-file-using-a-symmetric-key-derived-from-a-password">Part 1 - Encrypt/Decrypt a large file using a symmetric key derived from a password<a hidden class="anchor" aria-hidden="true" href="#part-1---encryptdecrypt-a-large-file-using-a-symmetric-key-derived-from-a-password">#</a></h3>
+<h4 id="encryption">Encryption<a hidden class="anchor" aria-hidden="true" href="#encryption">#</a></h4>
+<ul>
+<li>Encrypt a large (1GB) file using a password
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ~/bin/openssl@3.0.8 version -v
+</span></span><span class="line"><span class="cl">OpenSSL 3.0.8 <span class="m">7</span> Feb <span class="m">2023</span> <span class="o">(</span>Library: OpenSSL 3.0.8 <span class="m">7</span> Feb 2023<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ ls -lhgG 1GB-file
+</span></span><span class="line"><span class="cl">-rw-rw-r-- <span class="m">1</span> 1.0G Aug <span class="m">23</span> 05:57 1GB-file
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ ~/bin/openssl@3.0.8 enc -aes-256-cbc -pbkdf2 -salt -md sha512 -in 1GB-file <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-out 1GB-file.enc -pass pass:secretpassword
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ ls -lhgG 1GB-file*
+</span></span><span class="line"><span class="cl">-rw-rw-r-- <span class="m">1</span> 1.0G Aug <span class="m">23</span> 05:57 1GB-file
+</span></span><span class="line"><span class="cl">-rw-rw-r-- <span class="m">1</span> 1.1G Aug <span class="m">23</span> 06:18 1GB-file.enc
+</span></span></code></pre></div>Where,
+<ul>
+<li><code>enc</code>: Encryption command.</li>
+<li><code>-aes-256-cbc</code>: 256 bit AES (<a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Advanced Encryption Standard</a>) in CBC (<a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)">Cipher block chaining</a>) mode.</li>
+<li><code>-pbkdf2</code>: Use PBKDF2 (<a href="https://en.wikipedia.org/wiki/PBKDF2">Password Based Key Derivation Function</a>) algorithm to derive a key from password.</li>
+<li><code>-salt</code>: Use <a href="https://en.wikipedia.org/wiki/Salt_(cryptography)">salt</a> (randomly generated) when encrypting. (This is default)</li>
+<li><code>-md &lt;digest&gt;</code>: Use the specified digest to create the key from the passphrase. The default algorithm is <code>sha-256</code>.</li>
+<li><code>-in &lt;filename&gt;</code>: The input filename, standard input by default. (File to encrypt)</li>
+<li><code>-out &lt;filename&gt;</code> : The output filename, standard output by default. (Encrypted file)</li>
+<li><code>-pass pass:&lt;password&gt;</code>: Password used to derive a <a href="https://en.wikipedia.org/wiki/Symmetric-key_algorithm">symmetric key</a>.</li>
+</ul>
+</li>
+</ul>
+<h4 id="decryption">Decryption<a hidden class="anchor" aria-hidden="true" href="#decryption">#</a></h4>
+<ul>
+<li>Decrypt an encrypted file using encryption password.
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ~/bin/openssl@3.0.8 enc -d -aes-256-cbc -pbkdf2 -md sha512 -in 1GB-file.enc <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-out 1GB-file.dec -pass pass:secretpassword
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Verify if the file was decrypted correctly by comparing the checksums</span>
+</span></span><span class="line"><span class="cl">$ sha256sum 1GB-file 1GB-file.dec
+</span></span><span class="line"><span class="cl">e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3  1GB-file
+</span></span><span class="line"><span class="cl">e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3  1GB-file.dec
+</span></span></code></pre></div>Where,
+<ul>
+<li><code>enc</code>: Encryption command.</li>
+<li><code>-d</code>: Decrypt the input data.</li>
+<li><code>-aes-256-cbc</code>: 256 bit AES in CBC mode.</li>
+<li><code>-pbkdf2</code>: Use PBKDF2 algorithm to derive symmetric key using password.</li>
+<li><code>-md &lt;digest&gt;</code>: Use the specified digest to create the key from the passphrase. The default algorithm is sha-256. (NOTE: <em>This option has to be specified during decryption if a non-default digest was used during encryption</em>)</li>
+<li><code>-in &lt;filename&gt;</code>: The input filename, standard input by default. (Encrypted file)</li>
+<li><code>-out &lt;filename&gt;</code> : The output filename, standard output by default. (Decrypted file)</li>
+<li><code>-pass pass:&lt;password&gt;</code>: Password used to derive a symmetric key.</li>
+</ul>
+</li>
+</ul>
+<h3 id="part-2---encryptdecrypt-a-large-file-using-an-asymmetric-key-pair">Part 2 - Encrypt/Decrypt a large file using an asymmetric key pair<a hidden class="anchor" aria-hidden="true" href="#part-2---encryptdecrypt-a-large-file-using-an-asymmetric-key-pair">#</a></h3>
+<ul>
+<li>Encrypting a large file using asymmetric (public-key) cryptography, is not the most efficient approach due to the limitations of asymmetric algorithms.</li>
+<li>Asymmetric encryption algorithms like RSA are computationally expensive, especially for large files. The encryption and decryption processes involve complex mathematical operations, making them slow and resource-intensive.</li>
+<li>Asymmetric encryption algorithms tend to produce ciphertext that is significantly larger than the original plaintext. This can lead to substantial increases in storage requirements and data transfer times.</li>
+<li>Asymmetric encryption keys need to be larger to provide the same level of security as symmetric encryption keys.</li>
+<li>Symmetric encryption is much faster and efficient for handling large data.</li>
+<li>In practice, a common approach is to use a hybrid encryption scheme:
+<ul>
+<li>Generate a random symmetric encryption key and use a symmetric encryption algorithm (e.g., AES) to encrypt the large file.</li>
+<li>Encrypt the symmetric key using the recipient&rsquo;s asymmetric (public) key. This step ensures that only the intended recipient with corresponding private key can decrypt the symmetric key.</li>
+<li>Send both the encrypted file (using symmetric encryption) and the encrypted symmetric key to the recipient.</li>
+<li>The recipient uses their private key to decrypt the symmetric key, and then uses the symmetric key to decrypt the actual file.</li>
+<li>This approach leverages the strengths of both asymmetric and symmetric encryption, resulting in both security and efficiency.</li>
+</ul>
+</li>
+</ul>
+<h4 id="encryption-using-openssl-308">Encryption using OpenSSL 3.0.8<a hidden class="anchor" aria-hidden="true" href="#encryption-using-openssl-308">#</a></h4>
+<ul>
+<li>
+<p>Create random 32 (<em>or any number</em>) bytes of keying material using <code>openssl</code>. NOTE: These 32 bytes are <strong>not</strong> used as symmetric key.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl rand <span class="m">32</span> &gt; keymaterial.bin
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ xxd keymaterial.bin
+</span></span><span class="line"><span class="cl">00000000: f178 237d 5fbf 400e 0c7a 3c90 c0c2 6a22  .x#<span class="o">}</span>_.@..z&lt;...j<span class="s2">&#34;
+</span></span></span><span class="line"><span class="cl"><span class="s2">00000010: d69a 182d ff57 97cd dfd6 2081 51c1 976d  ...-.W.... .Q..m
+</span></span></span></code></pre></div><p>Where,</p>
+<ul>
+<li><code>rand</code>: Generate random bytes.</li>
+<li><code>&lt;number_of_random_bytes&gt;</code>: Required number of random bytes.</li>
+</ul>
+</li>
+<li>
+<p>Encrypt a large file using a 256 bit key derived from a random salt and <code>keymaterial.bin</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ~/bin/openssl@3.0.8 enc -a -aes-256-cbc -in 1GB-file -out 1GB-file.enc <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-pbkdf2 -salt -pass file:keymaterial.bin
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ ls -lhgG 1GB-file*
+</span></span><span class="line"><span class="cl">-rw-rw-r-- <span class="m">1</span> 1.0G Aug <span class="m">23</span> 05:57 1GB-file
+</span></span><span class="line"><span class="cl">-rw-rw-r-- <span class="m">1</span> 1.4G Aug <span class="m">23</span> 06:48 1GB-file.enc
+</span></span></code></pre></div><p>Where,</p>
+<ul>
+<li><code>enc</code>: Encryption command.</li>
+<li><code>-a</code>: Base64 process the data. This means that if encryption is taking place the data is base64 encoded after encryption.</li>
+<li><code>-aes-256-cbc</code>: 256 bit AES in CBC mode.</li>
+<li><code>-in &lt;filename&gt;</code>: The input filename, standard input by default. (File to encrypt)</li>
+<li><code>-out &lt;filename&gt;</code> : The output filename, standard output by default. (Encrypted file)</li>
+<li><code>-pbkdf2</code>: Use PBKDF2 algorithm with a default iteration count of 10000 unless otherwise specified by the <strong>-iter</strong> command line option.</li>
+<li><code>-salt</code>: Use salt (randomly generated) when encrypting. (This is default)</li>
+<li><code>-pass file:&lt;key-material-file&gt;</code>: Bytes used to derive a 256 bit symmetric key.</li>
+</ul>
+</li>
+<li>
+<p>Encrypt the <code>keymaterial.bin</code> using receiver&rsquo;s public key.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl pkeyutl -encrypt -inkey id_rsa_2048.pub.pem -pubin -in keymaterial.bin <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-out keymaterial.bin.enc
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># base64 encode the encrypted keymaterial for easy transmission</span>
+</span></span><span class="line"><span class="cl">$ openssl base64 -in keymaterial.bin.enc -out keymaterial.bin.enc.b64
+</span></span></code></pre></div><p>Where,</p>
+<ul>
+<li><code>pkeyutl</code>: command used to perform low-level public key operations</li>
+<li><code>-encrypt</code>: Encrypt the input data using a public key.</li>
+<li><code>-inkey &lt;key&gt;</code>: The input key used for encryption. (NOTE: Use <em>receiver&rsquo;s public key</em>)</li>
+<li><code>-pubin</code>: The input file is a public key.</li>
+<li><code>-in &lt;filename&gt;</code>: Input filename to read data from.</li>
+<li><code>-out &lt;filename&gt;</code>: Output filename to write to.</li>
+</ul>
+</li>
+<li>
+<p>Send <code>1GB-file.enc</code> and <code>keymaterial.bin.enc.b64</code> to the receiver.</p>
+</li>
+</ul>
+<h4 id="decryption-using-openssl-308">Decryption using OpenSSL 3.0.8<a hidden class="anchor" aria-hidden="true" href="#decryption-using-openssl-308">#</a></h4>
+<ul>
+<li>Decode the encrypted key material
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl base64 -d -in keymaterial.bin.enc.b64 <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-out keymaterial.bin.enc.decoded
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ sha256sum keymaterial.bin.enc keymaterial.bin.enc.decoded
+</span></span><span class="line"><span class="cl">5c385055b8cfaec09c9c8d2f79e3f9cdfcf33a80f06d2a21592ac8652e228b61  keymaterial.bin.enc
+</span></span><span class="line"><span class="cl">5c385055b8cfaec09c9c8d2f79e3f9cdfcf33a80f06d2a21592ac8652e228b61  keymaterial.bin.enc.decoded
+</span></span></code></pre></div></li>
+<li>Decrypt the <code>keymaterial.bin.enc</code> using receiver&rsquo;s <em>private key</em>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ openssl pkeyutl -decrypt -inkey id_rsa_2048.pem <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-in keymaterial.bin.enc.decoded -out keymaterial.bin.dec
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$ sha256sum keymaterial.bin keymaterial.bin.dec
+</span></span><span class="line"><span class="cl">0373f9536fa1a1e25527711bc53bccc1ce49970e1311c0602aa78b5115f5b251  keymaterial.bin
+</span></span><span class="line"><span class="cl">0373f9536fa1a1e25527711bc53bccc1ce49970e1311c0602aa78b5115f5b251  keymaterial.bin.dec
+</span></span></code></pre></div>Where,
+<ul>
+<li><code>pkeyutl</code>: command used to perform low-level public key operations</li>
+<li><code>-decrypt</code>: Decrypt the input data using a private key.</li>
+<li><code>-inkey &lt;key&gt;</code>: The input key used for decryption. (NOTE: Use <em>receiver&rsquo;s private key</em>)</li>
+<li><code>-in &lt;filename&gt;</code>: Input filename to read data from.</li>
+<li><code>-out &lt;filename&gt;</code>: Output filename to write to.</li>
+</ul>
+</li>
+<li>Decrypt the encrypted file by deriving the decryption key using <code>keymaterial.bin</code>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ~/bin/openssl@3.0.8 enc -a -d -aes-256-cbc -in 1GB-file.enc <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>-out 1GB-file.dec -pbkdf2 -pass file:keymaterial.bin.dec
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Verify if the file was decrypted correctly by comparing the checksums</span>
+</span></span><span class="line"><span class="cl">$ sha256sum 1GB-file 1GB-file.dec
+</span></span><span class="line"><span class="cl">e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3  1GB-file
+</span></span><span class="line"><span class="cl">e8a28381f00a8544bad85d1963622c7805d540ddeae35cdb70028f383b2482a3  1GB-file.dec
+</span></span></code></pre></div>Where,
+<ul>
+<li><code>enc</code>: Encryption command</li>
+<li><code>-a</code>: Base64 process the data. If decryption is set then the input data is base64 decoded before being decrypted.</li>
+<li><code>-d</code>: Decrypt the input data.</li>
+<li><code>-aes-256-cbc</code>: 256 bit AES in CBC mode</li>
+<li><code>-in &lt;filename&gt;</code>: The input filename, standard input by default. (Encrypted file)</li>
+<li><code>-out &lt;filename&gt;</code> : The output filename, standard output by default. (Decrypted file)</li>
+<li><code>-pbkdf2</code>: Use PBKDF2 algorithm with a default iteration count of 10000 unless otherwise specified by the <strong>-iter</strong> command line option.</li>
+<li><code>-pass file:&lt;key-material-file&gt;</code>: Bytes used to derive a 256 bit symmetric key.</li>
+</ul>
+</li>
+<li>That&rsquo;s it. Without exchanging the symmetric key on wire or any means, sender and receiver were able to securely share a file using asymmetric cryptography.</li>
+</ul>
+<h3 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h3>
+<ul>
+<li><a href="https://www.openssl.org/docs/man3.0/man1/openssl-enc.html">OpenSSL 3 - openssl-enc</a></li>
+<li><a href="https://www.openssl.org/docs/man3.0/man1/openssl-rand.html">OpenSSL 3 - openssl-rand</a></li>
+<li><a href="https://www.openssl.org/docs/man3.0/man1/openssl-pkeyutl.html">OpenSSL 3 - openssl-pkutl</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://partbypart.github.io/tags/openssl/">Openssl</a></li>
+      <li><a href="https://partbypart.github.io/tags/encryption-decryption/">Encryption-Decryption</a></li>
+      <li><a href="https://partbypart.github.io/tags/symmetric-key/">Symmetric-Key</a></li>
+      <li><a href="https://partbypart.github.io/tags/asymmetric-key/">Asymmetric-Key</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Demystifying ASN.1, DER, PEM, PKCS1 and PKCS8</span>
+  </a>
+  <a class="next" href="https://partbypart.github.io/posts/quick-bytes-der-basics/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Quick bytes - Basics of Distinguished Encoding Rules</span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on x"
+            href="https://x.com/intent/tweet/?text=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f&amp;hashtags=openssl%2cencryption-decryption%2csymmetric-key%2casymmetric-key">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f&amp;title=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command&amp;summary=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command&amp;source=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on reddit"
+            href="https://reddit.com/submit?url=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f&title=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on whatsapp"
+            href="https://api.whatsapp.com/send?text=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command%20-%20https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on telegram"
+            href="https://telegram.me/share/url?text=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command&amp;url=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Encrypt/Decrypt a file using openssl command on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=Encrypt%2fDecrypt%20a%20file%20using%20openssl%20command&u=https%3a%2f%2fpartbypart.github.io%2fposts%2fencrypt-decrypt-file-using-openssl-command%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://partbypart.github.io/">Learn part by part</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a><br/>
+        <a href="https://www.flaticon.com/free-icons/timber" title="timber icons">Timber icons created by imaginationlol - Flaticon</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
