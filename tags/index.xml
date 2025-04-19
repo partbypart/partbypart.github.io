@@ -11,166 +11,202 @@
     </image>
     <generator>Hugo -- 0.128.2</generator>
     <language>en-us</language>
+    <lastBuildDate>Wed, 02 Apr 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://partbypart.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Asymmetric-Key</title>
-      <link>https://partbypart.github.io/tags/asymmetric-key/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/asymmetric-key/</guid>
+      <title>Api</title>
+      <link>https://partbypart.github.io/tags/api/</link>
+      <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/api/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Auth0</title>
+      <link>https://partbypart.github.io/tags/auth0/</link>
+      <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/auth0/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Howto</title>
+      <link>https://partbypart.github.io/tags/howto/</link>
+      <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/howto/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Oauth</title>
+      <link>https://partbypart.github.io/tags/oauth/</link>
+      <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/oauth/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Ctags</title>
+      <link>https://partbypart.github.io/tags/ctags/</link>
+      <pubDate>Mon, 02 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/ctags/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Vim</title>
+      <link>https://partbypart.github.io/tags/vim/</link>
+      <pubDate>Mon, 02 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/vim/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Openssl-Pkeyutl</title>
+      <link>https://partbypart.github.io/tags/openssl-pkeyutl/</link>
+      <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/openssl-pkeyutl/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Sign</title>
+      <link>https://partbypart.github.io/tags/sign/</link>
+      <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/sign/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Verify</title>
+      <link>https://partbypart.github.io/tags/verify/</link>
+      <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/verify/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Fips</title>
+      <link>https://partbypart.github.io/tags/fips/</link>
+      <pubDate>Wed, 10 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/fips/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Openssl3</title>
+      <link>https://partbypart.github.io/tags/openssl3/</link>
+      <pubDate>Wed, 10 Jan 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/openssl3/</guid>
       <description></description>
     </item>
     <item>
       <title>Deepdive</title>
       <link>https://partbypart.github.io/tags/deepdive/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/deepdive/</guid>
       <description></description>
     </item>
     <item>
       <title>Der</title>
       <link>https://partbypart.github.io/tags/der/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/der/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Encryption-Decryption</title>
-      <link>https://partbypart.github.io/tags/encryption-decryption/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/encryption-decryption/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Fips</title>
-      <link>https://partbypart.github.io/tags/fips/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/fips/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>First</title>
-      <link>https://partbypart.github.io/tags/first/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/first/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Howto</title>
-      <link>https://partbypart.github.io/tags/howto/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/howto/</guid>
       <description></description>
     </item>
     <item>
       <title>Openssl</title>
       <link>https://partbypart.github.io/tags/openssl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/openssl/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Openssl-Dgst</title>
-      <link>https://partbypart.github.io/tags/openssl-dgst/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/openssl-dgst/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Openssl-Genpkey</title>
-      <link>https://partbypart.github.io/tags/openssl-genpkey/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/openssl-genpkey/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Openssl-Pkeyutl</title>
-      <link>https://partbypart.github.io/tags/openssl-pkeyutl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/openssl-pkeyutl/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Openssl-Rsa</title>
-      <link>https://partbypart.github.io/tags/openssl-rsa/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/openssl-rsa/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Openssl3</title>
-      <link>https://partbypart.github.io/tags/openssl3/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/openssl3/</guid>
       <description></description>
     </item>
     <item>
       <title>Pem</title>
       <link>https://partbypart.github.io/tags/pem/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/pem/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Pkcs#1</title>
-      <link>https://partbypart.github.io/tags/pkcs%231/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/pkcs%231/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Pkcs#8</title>
-      <link>https://partbypart.github.io/tags/pkcs%238/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/pkcs%238/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Privatekey</title>
-      <link>https://partbypart.github.io/tags/privatekey/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/privatekey/</guid>
       <description></description>
     </item>
     <item>
       <title>Publickey</title>
       <link>https://partbypart.github.io/tags/publickey/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/publickey/</guid>
       <description></description>
     </item>
     <item>
       <title>Rsa</title>
       <link>https://partbypart.github.io/tags/rsa/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/rsa/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Sign</title>
-      <link>https://partbypart.github.io/tags/sign/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/sign/</guid>
       <description></description>
     </item>
     <item>
       <title>Subjectpublickeyinfo</title>
       <link>https://partbypart.github.io/tags/subjectpublickeyinfo/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/subjectpublickeyinfo/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Pkcs#8</title>
+      <link>https://partbypart.github.io/tags/pkcs%238/</link>
+      <pubDate>Sat, 26 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/pkcs%238/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Privatekey</title>
+      <link>https://partbypart.github.io/tags/privatekey/</link>
+      <pubDate>Sat, 26 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/privatekey/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Openssl-Dgst</title>
+      <link>https://partbypart.github.io/tags/openssl-dgst/</link>
+      <pubDate>Wed, 23 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/openssl-dgst/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Pkcs#1</title>
+      <link>https://partbypart.github.io/tags/pkcs%231/</link>
+      <pubDate>Sun, 20 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/pkcs%231/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>First</title>
+      <link>https://partbypart.github.io/tags/first/</link>
+      <pubDate>Tue, 15 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/first/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Openssl-Genpkey</title>
+      <link>https://partbypart.github.io/tags/openssl-genpkey/</link>
+      <pubDate>Mon, 14 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/openssl-genpkey/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Openssl-Rsa</title>
+      <link>https://partbypart.github.io/tags/openssl-rsa/</link>
+      <pubDate>Mon, 14 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/openssl-rsa/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Asymmetric-Key</title>
+      <link>https://partbypart.github.io/tags/asymmetric-key/</link>
+      <pubDate>Thu, 22 Jun 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/asymmetric-key/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Encryption-Decryption</title>
+      <link>https://partbypart.github.io/tags/encryption-decryption/</link>
+      <pubDate>Thu, 22 Jun 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/tags/encryption-decryption/</guid>
       <description></description>
     </item>
     <item>
       <title>Symmetric-Key</title>
       <link>https://partbypart.github.io/tags/symmetric-key/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Thu, 22 Jun 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/tags/symmetric-key/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Verify</title>
-      <link>https://partbypart.github.io/tags/verify/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/tags/verify/</guid>
       <description></description>
     </item>
   </channel>

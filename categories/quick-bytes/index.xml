@@ -11,27 +11,35 @@
     </image>
     <generator>Hugo -- 0.128.2</generator>
     <language>en-us</language>
+    <lastBuildDate>Sun, 19 Jan 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://partbypart.github.io/categories/quick-bytes/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Quick bytes - Basics of Distinguished Encoding Rules</title>
-      <link>https://partbypart.github.io/posts/quick-bytes-der-basics/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/quick-bytes-der-basics/</guid>
-      <description>Brief and quick introduction to Distinguished Encoding rules</description>
-    </item>
-    <item>
-      <title>Quick bytes - Sign and verify a file using openssl-dgst</title>
-      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</guid>
-      <description>Learn to sign and verify a file using openssl dgst command</description>
+      <title>Quick bytes - Introduction to OAuth 2.0</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-oauth-2.0/</link>
+      <pubDate>Sun, 19 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-oauth-2.0/</guid>
+      <description>Learn key concepts of OAuth 2.0</description>
     </item>
     <item>
       <title>Quick bytes - Sign and verify a file using openssl-pkeyutl</title>
       <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</guid>
       <description>Learn to sign and verify a file using openssl pkeyutl command</description>
+    </item>
+    <item>
+      <title>Quick bytes - Sign and verify a file using openssl-dgst</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</link>
+      <pubDate>Wed, 23 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</guid>
+      <description>Learn to sign and verify a file using openssl dgst command</description>
+    </item>
+    <item>
+      <title>Quick bytes - Basics of Distinguished Encoding Rules</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-der-basics/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-der-basics/</guid>
+      <description>Brief and quick introduction to Distinguished Encoding rules</description>
     </item>
   </channel>
 </rss>

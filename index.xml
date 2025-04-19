@@ -11,14 +11,105 @@
     </image>
     <generator>Hugo -- 0.128.2</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 01 Jan 0001 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 02 Apr 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://partbypart.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Protect FastAPI API endpoints with Auth0</title>
+      <link>https://partbypart.github.io/posts/deep-dive-setup-auth0-authentication-authorization/</link>
+      <pubDate>Wed, 02 Apr 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/deep-dive-setup-auth0-authentication-authorization/</guid>
+      <description>Learn how to protect your FastAPI API endpoints using Auth0</description>
+    </item>
+    <item>
+      <title>Quick bytes - Introduction to OAuth 2.0</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-oauth-2.0/</link>
+      <pubDate>Sun, 19 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-oauth-2.0/</guid>
+      <description>Learn key concepts of OAuth 2.0</description>
+    </item>
+    <item>
+      <title>Getting started - Vim with ctags</title>
+      <link>https://partbypart.github.io/posts/getting-started-vim-with-ctags/</link>
+      <pubDate>Mon, 02 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/getting-started-vim-with-ctags/</guid>
+      <description>Quickly navigate source code using vim with ctags. Learn ctags installation, usage and regex patterns for quick tag search</description>
+    </item>
+    <item>
+      <title>Quick bytes - Sign and verify a file using openssl-pkeyutl</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</link>
+      <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</guid>
+      <description>Learn to sign and verify a file using openssl pkeyutl command</description>
+    </item>
     <item>
       <title>Build and Install OpenSSL 3 with FIPS module</title>
       <link>https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 10 Jan 2024 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/posts/build-and-install-openssl3-with-fips/</guid>
       <description>Learn how to build and install OpenSSL 3 (with fips module) on Linux</description>
+    </item>
+    <item>
+      <title>Deep dive - Anatomy of a SubjectPublicKeyInfo RSA public key</title>
+      <link>https://partbypart.github.io/posts/deep-dive-subjectpublickeyinfo-rsa-public-key/</link>
+      <pubDate>Mon, 28 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/deep-dive-subjectpublickeyinfo-rsa-public-key/</guid>
+      <description>Dissect and explore an RSA public key in SubjectPublicKeyInfo PEM format</description>
+    </item>
+    <item>
+      <title>Deep dive - Anatomy of a PKCS#8 RSA private key</title>
+      <link>https://partbypart.github.io/posts/deep-dive-pkcs8-rsa-private-key/</link>
+      <pubDate>Sat, 26 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/deep-dive-pkcs8-rsa-private-key/</guid>
+      <description>Dissect and explore a PKCS#8 RSA private key in PEM format</description>
+    </item>
+    <item>
+      <title>Quick bytes - Sign and verify a file using openssl-dgst</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</link>
+      <pubDate>Wed, 23 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</guid>
+      <description>Learn to sign and verify a file using openssl dgst command</description>
+    </item>
+    <item>
+      <title>Deep dive - Anatomy of a PKCS#1 RSA public key</title>
+      <link>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-public-key/</link>
+      <pubDate>Sun, 20 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-public-key/</guid>
+      <description>Dissect and explore a PKCS#1 RSA public key in PEM format</description>
+    </item>
+    <item>
+      <title>Quick bytes - Basics of Distinguished Encoding Rules</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-der-basics/</link>
+      <pubDate>Sat, 19 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-der-basics/</guid>
+      <description>Brief and quick introduction to Distinguished Encoding rules</description>
+    </item>
+    <item>
+      <title>Demystifying ASN.1, DER, PEM, PKCS1 and PKCS8</title>
+      <link>https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/</link>
+      <pubDate>Tue, 15 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/</guid>
+      <description>Learn the fundamentals of ASN.1, DER, PEM, PKCS#1 and PKCS#8</description>
+    </item>
+    <item>
+      <title>RSA key components</title>
+      <link>https://partbypart.github.io/posts/rsa-key-components/</link>
+      <pubDate>Mon, 14 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/rsa-key-components/</guid>
+      <description>Learn about the composition of RSA public and private keys and view the components using openssl command line tool</description>
+    </item>
+    <item>
+      <title>Encrypt/Decrypt a file using openssl command</title>
+      <link>https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/</link>
+      <pubDate>Thu, 22 Jun 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/</guid>
+      <description>Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key</description>
+    </item>
+    <item>
+      <title>RSA Key formats</title>
+      <link>https://partbypart.github.io/posts/rsa-key-formats/</link>
+      <pubDate>Wed, 19 Apr 2023 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/rsa-key-formats/</guid>
+      <description>Learn about the different formats of representing an RSA key</description>
     </item>
     <item>
       <title>Deep dive - Anatomy of a PKCS#1 RSA private key</title>
@@ -26,76 +117,6 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/</guid>
       <description>Dissect and explore a PKCS#1 RSA private key in PEM format</description>
-    </item>
-    <item>
-      <title>Deep dive - Anatomy of a PKCS#1 RSA public key</title>
-      <link>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-public-key/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-public-key/</guid>
-      <description>Dissect and explore a PKCS#1 RSA public key in PEM format</description>
-    </item>
-    <item>
-      <title>Deep dive - Anatomy of a PKCS#8 RSA private key</title>
-      <link>https://partbypart.github.io/posts/deep-dive-pkcs8-rsa-private-key/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/deep-dive-pkcs8-rsa-private-key/</guid>
-      <description>Dissect and explore a PKCS#8 RSA private key in PEM format</description>
-    </item>
-    <item>
-      <title>Deep dive - Anatomy of a SubjectPublicKeyInfo RSA public key</title>
-      <link>https://partbypart.github.io/posts/deep-dive-subjectpublickeyinfo-rsa-public-key/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/deep-dive-subjectpublickeyinfo-rsa-public-key/</guid>
-      <description>Dissect and explore an RSA public key in SubjectPublicKeyInfo PEM format</description>
-    </item>
-    <item>
-      <title>Demystifying ASN.1, DER, PEM, PKCS1 and PKCS8</title>
-      <link>https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/demystifying-asn1-der-pem-pkcs1-pkcs8/</guid>
-      <description>Learn the fundamentals of ASN.1, DER, PEM, PKCS#1 and PKCS#8</description>
-    </item>
-    <item>
-      <title>Encrypt/Decrypt a file using openssl command</title>
-      <link>https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/encrypt-decrypt-file-using-openssl-command/</guid>
-      <description>Use openssl command line tool to encrypt/decrypt a file using a combination of asymmetric and symmetric key</description>
-    </item>
-    <item>
-      <title>Quick bytes - Basics of Distinguished Encoding Rules</title>
-      <link>https://partbypart.github.io/posts/quick-bytes-der-basics/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/quick-bytes-der-basics/</guid>
-      <description>Brief and quick introduction to Distinguished Encoding rules</description>
-    </item>
-    <item>
-      <title>Quick bytes - Sign and verify a file using openssl-dgst</title>
-      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</guid>
-      <description>Learn to sign and verify a file using openssl dgst command</description>
-    </item>
-    <item>
-      <title>Quick bytes - Sign and verify a file using openssl-pkeyutl</title>
-      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</guid>
-      <description>Learn to sign and verify a file using openssl pkeyutl command</description>
-    </item>
-    <item>
-      <title>RSA key components</title>
-      <link>https://partbypart.github.io/posts/rsa-key-components/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/rsa-key-components/</guid>
-      <description>Learn about the composition of RSA public and private keys and view the components using openssl command line tool</description>
-    </item>
-    <item>
-      <title>RSA Key formats</title>
-      <link>https://partbypart.github.io/posts/rsa-key-formats/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/rsa-key-formats/</guid>
-      <description>Learn about the different formats of representing an RSA key</description>
     </item>
   </channel>
 </rss>
