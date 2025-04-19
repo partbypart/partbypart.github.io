@@ -11,11 +11,12 @@
     </image>
     <generator>Hugo -- 0.128.2</generator>
     <language>en-us</language>
+    <lastBuildDate>Fri, 25 Aug 2023 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/categories/certificates/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Quick bytes - Generate a self-signed certificate using openssl</title>
       <link>http://localhost:1313/posts/quick-bytes-self-sign-cert-with-openssl/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 25 Aug 2023 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/quick-bytes-self-sign-cert-with-openssl/</guid>
       <description>Learn how to generate a self signed certificate using openssl</description>
     </item>

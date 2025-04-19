@@ -14,18 +14,18 @@
     <lastBuildDate>Tue, 19 Mar 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://partbypart.github.io/tags/sign/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Quick bytes - Sign and verify a file using openssl-dgst</title>
+      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</link>
+      <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</guid>
+      <description>Learn to sign and verify a file using openssl dgst command</description>
+    </item>
+    <item>
       <title>Quick bytes - Sign and verify a file using openssl-pkeyutl</title>
       <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</link>
       <pubDate>Tue, 19 Mar 2024 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl-pkeyutl/</guid>
       <description>Learn to sign and verify a file using openssl pkeyutl command</description>
-    </item>
-    <item>
-      <title>Quick bytes - Sign and verify a file using openssl-dgst</title>
-      <link>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</link>
-      <pubDate>Wed, 23 Aug 2023 00:00:00 +0000</pubDate>
-      <guid>https://partbypart.github.io/posts/quick-bytes-sign-verify-with-openssl/</guid>
-      <description>Learn to sign and verify a file using openssl dgst command</description>
     </item>
   </channel>
 </rss>

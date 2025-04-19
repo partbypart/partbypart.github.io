@@ -23,7 +23,7 @@
     <item>
       <title>Deep dive - Anatomy of a PKCS#1 RSA private key</title>
       <link>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 22 Aug 2023 00:00:00 +0000</pubDate>
       <guid>https://partbypart.github.io/posts/deep-dive-pkcs1-rsa-private-key/</guid>
       <description>Dissect and explore a PKCS#1 RSA private key in PEM format</description>
     </item>

@@ -11,11 +11,12 @@
     </image>
     <generator>Hugo -- 0.128.2</generator>
     <language>en-us</language>
+    <lastBuildDate>Fri, 19 Jul 2024 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/tls/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Deep dive - Verify SSL/TLS Certificate Signature</title>
       <link>http://localhost:1313/posts/deep-dive-verify-tls-cert-signature/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 19 Jul 2024 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/deep-dive-verify-tls-cert-signature/</guid>
       <description>Learn how to download an SSL/TLS certificate and verify the signature using simple OpenSSL commands</description>
     </item>
